@@ -43,7 +43,7 @@ Output will be something like that:
 ```
 
 # Output
-Here is example output of slog
+Here is example output strings of slog
 ```
 2015:04:02:56 - [LIVE] Test message with level 0
 2015:04:02:56 - [LIVE] Test message with level 1
