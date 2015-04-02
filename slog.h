@@ -17,11 +17,19 @@
 
 ---------------------------------------------------------------------------*/
 
+
+/* For include header in CPP code */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 
+/* Definations for version info */
 #define VERSION "0.2.1 Snapshot"
 #define BUILD 14
 
@@ -64,3 +72,11 @@ void init_slog(char* fname, int to_file, int max);
 | Log exiting process
 ---------------------------------------------*/
 void slog(int level, char *msg, ...);
+
+
+/*---------------------------------------------
+| For include header in CPP code
+---------------------------------------------*/
+#ifdef __cplusplus
+}
+#endif
