@@ -31,6 +31,7 @@
 /* Main struct variable */
 SLogValues slog_val;
 
+
 /*---------------------------------------------
 | Initialise Date
 ---------------------------------------------*/
@@ -46,6 +47,17 @@ void init_date(SystemDate *mdate)
     mdate->mon = timeinfo->tm_mon+1;
     mdate->day = timeinfo->tm_mday;
     mdate->sec = timeinfo->tm_sec;
+}
+
+
+/*---------------------------------------------
+| Get slog version
+---------------------------------------------*/
+const char* slog_version()
+{
+    static char verstr[128];
+    sprintf(verstr, "%s Build %d", VERSION, BUILD);
+    return verstr;
 }
 
 

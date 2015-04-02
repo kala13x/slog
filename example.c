@@ -33,6 +33,11 @@ int main(int argc, char *argv[])
     * Third argument is max log level */
     init_slog("example", 1, 3);
 
+    /* Get and print slog version */
+    slog(0, "======================================");
+    slog(0, "Slog Version: %s", slog_version());
+    slog(0, "======================================");
+
     /* Log and print something with level 0 */
     slog(0, "[LIVE] Test message with level 0");
 

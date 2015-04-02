@@ -30,6 +30,17 @@ slog(0, "[LIVE] Test message with level 0");
 ```
 First argument is log level and second is message to print and/or save. Slog ands strings automatically with \n.
 
+# Version
+slog_version() is a function which returns version information of slog.
+Usage:
+```
+slog(0, "Slog Version: %s", slog_version());
+```
+Output will be something like that:
+```
+2015:04:02:28 - Slog Version: 0.2.1 Snapshot Build 14
+```
+
 # Output
 Here is example output of slog
 ```

@@ -22,6 +22,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+#define VERSION "0.2.1 Snapshot"
+#define BUILD 14
+
 
 /*---------------------------------------------
 | Structure for log level
@@ -43,6 +46,12 @@ typedef struct {
     int day;
     int sec;
 } SystemDate;
+
+
+/*---------------------------------------------
+| Get slog version
+---------------------------------------------*/
+const char* slog_version();
 
 
 /*---------------------------------------------
