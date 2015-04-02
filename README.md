@@ -1,12 +1,12 @@
 # slog Logging Library
 Advanced logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than level argument while printing with slog() function.
 
-# Usage
+### Usage
 If you want to use slog, you need just two files, slog.c and slog.h
 You must include slog.h header file in your code and add slog in Makefile or link it manual.
 There is Makefile example in this repository and you can see it and modify.
 
-# Simple API
+### Simple API
 At first you must initialise slog
 ```
 slog_init("filename", 1, 3);
@@ -28,14 +28,14 @@ If 1 is given, logs will be saved in file, but it wont if argument is 2.
 
 Third argument is maximum of log levels.
 
-# Print and log something
+### Print and log something
 There is an example how use slog. You can also see, compile and run example.c source file where is full functional examples of slog.
 ```
 slog(0, "[LIVE] Test message with level 0");
 ```
 First argument is log level and second is message to print and/or save. Slog ands strings automatically with \n.
 
-# Version
+### Version
 slog_version() is a function which returns version information of slog.
 
 Usage:
@@ -47,7 +47,7 @@ Output will be something like that:
 2015:04:02:28 - Slog Version: 0.2.1 Snapshot Build 14
 ```
 
-# Output
+### Output
 Here is example output strings of slog
 ```
 2015:04:02:56 - [LIVE] Test message with level 0
