@@ -1,0 +1,6 @@
+2015:04:02:56 - [LIVE] Test message with level 0
+2015:04:02:56 - [LIVE] Test message with level 1
+2015:04:02:56 - [DEBUG] Test message with level 2
+2015:04:02:56 - [DEBUG] Test message with level 3
+2015:04:02:56 - [LIVE] Test message with char argument: test string
+2015:04:02:56 - [LIVE] Test message with int argument: 69

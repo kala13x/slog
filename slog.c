@@ -16,17 +16,7 @@ Desc: Log and print exiting status
 /* Max buffer size of message */
 #define MAXMSG 8196
 
-
-/*---------------------------------------------
-| Initialise log level
----------------------------------------------*/
-void init_slog(LogValues *val, char* fname, int max) 
-{
-    val->level = 0;
-    val->fname = strdup(fname);
-    val->l_max = max;
-}
-
+SLogValues slog_val;
 
 /*---------------------------------------------
 | Initialise Date
@@ -73,12 +63,11 @@ void log_to_file(char *out, char *fname, SystemDate *mdate)
 /*---------------------------------------------
 | Parse config file
 ---------------------------------------------*/
-int parse_config(char *cfg_name, LogValues *val)
+int parse_config(char *cfg_name)
 {
     /* Used variables */
     FILE *file;
-    char * line = NULL;
-    int level;
+    char *line = NULL;
     size_t len = 0;
     ssize_t read;
 
@@ -93,7 +82,7 @@ int parse_config(char *cfg_name, LogValues *val)
         if(strstr(line, "log") != NULL) 
         {
             /* Get log level */
-            sscanf(line, "[^ ] %d", val->level);
+            slog_val.level = atoi(line+3);
 
             /* Close file and return */
             fclose(file);
@@ -106,6 +95,25 @@ int parse_config(char *cfg_name, LogValues *val)
 
 
 /*---------------------------------------------
+| Initialise log level
+---------------------------------------------*/
+void init_slog(char* fname, int to_file, int max) 
+{
+    slog_val.level = 0;
+    slog_val.fname = strdup(fname);
+    slog_val.l_max = max;
+    slog_val.to_file = to_file;
+
+    /* Parse config file */
+    if (parse_config("slog.cfg")) 
+    {
+        printf("[ERROR] - Cannot parse file: 'slog.cfg'\n");
+        return;
+    }
+}
+
+
+/*---------------------------------------------
 | Log exiting process
 ---------------------------------------------*/
 void slog(int level, char *msg, ...) 
@@ -113,22 +121,10 @@ void slog(int level, char *msg, ...)
     /* Used variables */
     char output[MAXMSG];
     char string[MAXMSG];
-    LogValues val;
     SystemDate mdate;
-
-    /* Initialise log level */
-    init_slog(&val, "example", 3);
 
     /* initialise system date */
     init_date(&mdate);
-
-    /* Parse config file */
-    if (parse_config("slog.cfg", &val)) 
-    {
-        printf("%02d:%02d:%02d:%02d - [ERROR] - Cannot parse file: 'slog.cfg'\n", 
-            mdate.year, mdate.mon, mdate.day, mdate.sec);
-        return;
-    }
 
     /* Read args */
     va_list args;
@@ -137,7 +133,7 @@ void slog(int level, char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if(!level || level == val.level && level <= val.l_max) 
+    if(!level || level <= slog_val.level && level <= slog_val.l_max) 
     {
         /* Generate output string with date */
         sprintf(output, "%02d:%02d:%02d:%02d - %s\n", 
@@ -147,6 +143,7 @@ void slog(int level, char *msg, ...)
         printf("%s", output);
 
         /* Save log in file */
-        log_to_file(output, val.fname, &mdate);
+        if (slog_val.to_file) 
+            log_to_file(output, slog_val.fname, &mdate);
     }
 }

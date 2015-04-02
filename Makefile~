@@ -1,4 +1,4 @@
-CXXFLAGS = -Wall -g
+CXXFLAGS = -Wall -g -I../
 OBJ = slog.o
 
 example: example.c $(OBJ)

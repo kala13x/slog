@@ -20,7 +20,6 @@ Desc: Header file of logging system
 int main(int argc, char *argv[])
 {
     /* Used variables */
-    LogValues val;
     char char_arg[32];
     int int_arg;
 
@@ -29,10 +28,10 @@ int main(int argc, char *argv[])
     int_arg = 69;
 
     /* Initialise slog 
-    * First argument is slog structure variables 
-    * Second argument is log filename 
-    * Third argument is log level */
-    init_slog(&val, "example", 3);
+    * First argument is log filename 
+    * Second argument is log to file (1 enabled, 0 disabled)
+    * Third argument is max log level */
+    init_slog("example", 1, 3);
 
     /* Log and print something with level 0 */
     slog(0, "[LIVE] Test message with level 0");
@@ -51,6 +50,9 @@ int main(int argc, char *argv[])
 
     /* Log and print something with int argument */
     slog(0, "[LIVE] Test message with int argument: %d", int_arg);
+
+    /* Test log with higher level than log max value */
+    slog(4, "[LIVE] Test log with higher level than log max value");
 
     return 0;
 }

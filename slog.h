@@ -19,7 +19,8 @@ typedef struct {
 	char* fname;
 	int level;
 	int l_max;
-} LogValues;
+	int to_file;
+} SLogValues;
 
 
 /*---------------------------------------------
@@ -36,7 +37,7 @@ typedef struct {
 /*---------------------------------------------
 | Initialise log level
 ---------------------------------------------*/
-void init_slog(LogValues *val, char* fname, int max);
+void init_slog(char* fname, int to_file, int max);
 
 
 /*---------------------------------------------
