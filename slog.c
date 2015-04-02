@@ -12,8 +12,8 @@ Desc: Log and print exiting status
 #include <stdarg.h>
 #include <time.h>
 #include "slog.h"
-#include "parser.h"
 
+/* Max buffer size of message */
 #define MAXMSG 8196
 
 
@@ -73,17 +73,33 @@ void log_to_file(char *out, char *fname, SystemDate *mdate)
 /*---------------------------------------------
 | Parse config file
 ---------------------------------------------*/
-static int handler(void *config, const char *section, const char *name,
-                   const char *value)
+int parse_config(char *cfg_name, LogValues *val)
 {
-    LogValues *val = (LogValues*)config;
+    /* Used variables */
+    FILE *file;
+    char * line = NULL;
+    int level;
+    size_t len = 0;
+    ssize_t read;
 
-    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-    if (MATCH("config", "log")) {
-        val->level = atoi(value);
-    } else {
-        return 0;
-    }
+    /* Open file pointer */
+    file = fopen(cfg_name, "r");
+    if(file == NULL) return 1;
+
+    /* Line-by-line read cfg file */
+    while ((read = getline(&line, &len, file)) != -1) 
+    {
+        /* Find level in file */
+        if(strstr(line, "log") != NULL) 
+        {
+            /* Get log level */
+            sscanf(line, "[^ ] %d", val->level);
+
+            /* Close file and return */
+            fclose(file);
+            return 0;
+        }
+    } 
 
     return 1;
 }
@@ -101,15 +117,15 @@ void slog(int level, char *msg, ...)
     SystemDate mdate;
 
     /* Initialise log level */
-    init_slog(&val, "chvenvr", 3);
+    init_slog(&val, "example", 3);
 
     /* initialise system date */
     init_date(&mdate);
 
     /* Parse config file */
-    if (ini_parse("config.cfg", handler, &val) < 0) 
+    if (parse_config("slog.cfg", &val)) 
     {
-        printf("%02d:%02d:%02d:%02d - [ERROR] - Can not parse file: 'config.cfg'\n", 
+        printf("%02d:%02d:%02d:%02d - [ERROR] - Cannot parse file: 'slog.cfg'\n", 
             mdate.year, mdate.mon, mdate.day, mdate.sec);
         return;
     }
