@@ -56,7 +56,7 @@ void init_date(SystemDate *mdate)
 const char* slog_version()
 {
     static char verstr[128];
-    sprintf(verstr, "%s Build %d", VERSION, BUILD);
+    sprintf(verstr, "%s Build %d", SLOGVERSION, SLOGBUILD);
     return verstr;
 }
 
