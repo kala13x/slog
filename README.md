@@ -1,4 +1,4 @@
-# slog Logging Library
+## Slog Logging Library
 Advanced logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than level argument while printing with slog() function.
 
 ### Usage
