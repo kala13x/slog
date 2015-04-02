@@ -32,6 +32,7 @@ First argument is log level and second is message to print and/or save. Slog and
 
 # Version
 slog_version() is a function which returns version information of slog.
+
 Usage:
 ```
 slog(0, "Slog Version: %s", slog_version());
