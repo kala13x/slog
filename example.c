@@ -1,8 +1,8 @@
 /*-----------------------------------------------------
-Name: log.h
+Name: example.c
 Date: 2015.04.02
 Auth: kala13x (a.k.a 7th Ghost)
-Desc: Header file of logging system
+Desc: Example of slog library
 -----------------------------------------------------*/
 
 
