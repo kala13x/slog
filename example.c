@@ -51,7 +51,8 @@ int main(int argc, char *argv[])
     /* Log and print something with int argument */
     slog(0, "[LIVE] Test message with int argument: %d", int_arg);
 
-    /* Test log with higher level than log max value */
+    /* Test log with higher level than log max value 
+    * This will never be printed while log level argument is lover than max log level */
     slog(4, "[LIVE] Test log with higher level than log max value");
 
     return 0;
