@@ -1,5 +1,5 @@
 # slog
-Advanced logging library for C/C++
+Advanced logging library for C/C++ which parses log level from config file and prints log if log level is equal or higher than level while printing with slog() function.
 
 # Simple API
 At first you must initialise slog
