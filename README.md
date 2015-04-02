@@ -24,7 +24,8 @@ If 1 is given, logs will be saved in file, but it wont if argument is 2.
 Third argument is maximum of log levels.
 
 # Usage
+There is an example how use slog. You can also see, compile and run example.c source file where is full functional examples of slog.
 ```
 slog(0, "[LIVE] Test message with level 0");
 ```
-Where first argument is log level and second is message to print and/or save.
+First argument is log level and second is message to print and/or save. Slog ands strings automatically with \n.
