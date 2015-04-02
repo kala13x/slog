@@ -28,6 +28,7 @@
 /* Max buffer size of message */
 #define MAXMSG 8196
 
+/* Main struct variable */
 SLogValues slog_val;
 
 /*---------------------------------------------
