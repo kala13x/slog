@@ -1,9 +1,21 @@
-/*-----------------------------------------------------
-Name: log.c
-Date: 2015.04.01
-Auth: kala13x (a.k.a 7th Ghost)
-Desc: Log and print exiting status
------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+
+ slog is Advanced logging library for C/C++
+
+ Copyright (c) 2015 Sun Dro (a.k.a. 7th Ghost)
+ Web: http://off-sec.com/ ; E-Mail: kala0x13@gmail.com
+
+ This is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 3 of the License, or (at your option) any later version.
+
+ This software is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+---------------------------------------------------------------------------*/
 
 
 #include <stdio.h>
