@@ -29,3 +29,14 @@ There is an example how use slog. You can also see, compile and run example.c so
 slog(0, "[LIVE] Test message with level 0");
 ```
 First argument is log level and second is message to print and/or save. Slog ands strings automatically with \n.
+
+# Output
+Here is example output of slog
+```
+2015:04:02:56 - [LIVE] Test message with level 0
+2015:04:02:56 - [LIVE] Test message with level 1
+2015:04:02:56 - [DEBUG] Test message with level 2
+2015:04:02:56 - [DEBUG] Test message with level 3
+2015:04:02:56 - [LIVE] Test message with char argument: test string
+2015:04:02:56 - [LIVE] Test message with int argument: 69
+```
