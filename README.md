@@ -24,7 +24,7 @@ Enable   | Disable
 ---------|---------
 1        | 0
 
-If 1 is given, logs will be saved in file, but it wont if argument is 2.
+If 1 is given, logs will be saved in file, but it wont if argument is 0.
 
 Third argument is maximum of log levels.
 
