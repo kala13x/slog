@@ -38,10 +38,10 @@ extern "C" {
 | Structure for log level
 ---------------------------------------------*/
 typedef struct {
-	char* fname;
-	int level;
-	int l_max;
-	int to_file;
+    char* fname;
+    int level;
+    int l_max;
+    int to_file;
 } SLogValues;
 
 
@@ -52,6 +52,8 @@ typedef struct {
     int year; 
     int mon; 
     int day;
+    int hour;
+    int min;
     int sec;
 } SystemDate;
 
