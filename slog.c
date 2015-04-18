@@ -58,7 +58,7 @@ void init_date(SystemDate *mdate)
 const char* slog_version()
 {
     static char verstr[128];
-    sprintf(verstr, "%s Build %d", SLOGVERSION, SLOGBUILD);
+    sprintf(verstr, "%s Build %d (%s)", SLOGVERSION, SLOGBUILD, __DATE__);
     return verstr;
 }
 
@@ -160,7 +160,7 @@ void slog(int level, char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if(!level || level <= slog_val.level && level <= slog_val.l_max) 
+    if((!level || level <= slog_val.level) && level <= slog_val.l_max) 
     {
         /* Generate output string with date */
         sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s\n", 

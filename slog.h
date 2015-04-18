@@ -30,7 +30,7 @@ extern "C" {
 #include <stdarg.h>
 
 /* Definations for version info */
-#define SLOGVERSION "0.2.1 Snapshot"
+#define SLOGVERSION "0.2.2 Snapshot"
 #define SLOGBUILD 14
 
 
