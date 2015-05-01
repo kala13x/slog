@@ -9,7 +9,7 @@ There is Makefile example in this repository and you can see it and modify.
 ### Simple API
 At first you must initialise slog
 ```
-slog_init("filename", 1, 3);
+slog_init("filename", 3);
 ```
 First argument "filename" is a filename where logs will be saved.
 File name will be generated from argument and also from system date.
@@ -18,7 +18,19 @@ Finally file name will be something like that:
 filename-2015-04-02.log
 ```
 
-Second argument is for enabling/disabling log to file.
+Second argument is maximum log level.
+
+### Config file
+
+Slog has its config file 'slog.cfg'
+Example:
+```
+loglevel 3
+logtofile 1
+```
+First value is logging level to control which levels of log should be printed.
+
+Second argument is log to file
 
 Enable   | Disable
 ---------|---------
@@ -26,7 +38,6 @@ Enable   | Disable
 
 If 1 is given, logs will be saved in file, but it wont if argument is 0.
 
-Third argument is maximum of log levels.
 
 ### Print and log something
 There is an example how use slog. You can also see, compile and run example.c source file where is full functional examples of slog.
@@ -44,16 +55,16 @@ slog(0, "Slog Version: %s", slog_version());
 ```
 Output will be something like that:
 ```
-2015:04:02:28 - Slog Version: 0.2.1 Snapshot Build 14
+2015.05.01-15:59:58 - Slog Version: 0.2.3 Snapshot Build 16 (May  1 2015)
 ```
 
 ### Output
 Here is example output strings of slog
 ```
-2015:04:02:56 - [LIVE] Test message with level 0
-2015:04:02:56 - [LIVE] Test message with level 1
-2015:04:02:56 - [DEBUG] Test message with level 2
-2015:04:02:56 - [DEBUG] Test message with level 3
-2015:04:02:56 - [LIVE] Test message with char argument: test string
-2015:04:02:56 - [LIVE] Test message with int argument: 69
+2015.05.01-15:59:58 - [LIVE] Test message with level 0
+2015.05.01-15:59:58 - [LIVE] Test message with level 1
+2015.05.01-15:59:58 - [DEBUG] Test message with level 2
+2015.05.01-15:59:58 - [DEBUG] Test message with level 3
+2015.05.01-15:59:58 - [LIVE] Test message with char argument: test string
+2015.05.01-15:59:58 - [LIVE] Test message with int argument: 69
 ```
