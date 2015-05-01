@@ -30,8 +30,8 @@ extern "C" {
 #include <stdarg.h>
 
 /* Definations for version info */
-#define SLOGVERSION "0.2.2 Snapshot"
-#define SLOGBUILD 14
+#define SLOGVERSION "0.2.3 Snapshot"
+#define SLOGBUILD 16
 
 
 /*---------------------------------------------
@@ -67,7 +67,7 @@ const char* slog_version();
 /*---------------------------------------------
 | Initialise log level
 ---------------------------------------------*/
-void init_slog(char* fname, int to_file, int max);
+void init_slog(char* fname, int max);
 
 
 /*---------------------------------------------

@@ -29,7 +29,7 @@
 #define MAXMSG 8196
 
 /* Main struct variable */
-SLogValues slog_val;
+static SLogValues slog_val;
 
 
 /*---------------------------------------------
@@ -97,6 +97,7 @@ int parse_config(char *cfg_name)
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
+    int ret = 1;
 
     /* Open file pointer */
     file = fopen(cfg_name, "r");
@@ -106,37 +107,23 @@ int parse_config(char *cfg_name)
     while ((read = getline(&line, &len, file)) != -1) 
     {
         /* Find level in file */
-        if(strstr(line, "log") != NULL) 
+        if(strstr(line, "loglevel") != NULL) 
         {
             /* Get log level */
-            slog_val.level = atoi(line+3);
-
-            /* Close file and return */
-            fclose(file);
-            return 0;
+            slog_val.level = atoi(line+8);
+            ret = 0;
+        }
+        else if(strstr(line, "logtofile") != NULL) 
+        {
+            /* Get log level */
+            slog_val.to_file = atoi(line+9);
+            ret = 0;
         }
     } 
 
-    return 1;
-}
-
-
-/*---------------------------------------------
-| Initialise log level
----------------------------------------------*/
-void init_slog(char* fname, int to_file, int max) 
-{
-    slog_val.level = 0;
-    slog_val.fname = strdup(fname);
-    slog_val.l_max = max;
-    slog_val.to_file = to_file;
-
-    /* Parse config file */
-    if (parse_config("slog.cfg")) 
-    {
-        printf("[ERROR] - Cannot parse file: 'slog.cfg'\n");
-        return;
-    }
+    /* Close file and return */
+    fclose(file);
+    return ret;
 }
 
 
@@ -172,5 +159,24 @@ void slog(int level, char *msg, ...)
         /* Save log in file */
         if (slog_val.to_file) 
             log_to_file(output, slog_val.fname, &mdate);
+    }
+}
+
+
+/*---------------------------------------------
+| Initialise slog values
+---------------------------------------------*/
+void init_slog(char* fname, int max) 
+{
+    slog_val.level = 0;
+    slog_val.fname = strdup(fname);
+    slog_val.l_max = max;
+    slog_val.to_file = 0;
+
+    /* Parse config file */
+    if (parse_config("slog.cfg")) 
+    {
+        slog(0, "[WARNING] - loglevel and/or logtofile flag is not set from config.");
+        return;
     }
 }

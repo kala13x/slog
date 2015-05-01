@@ -1,0 +1,9 @@
+2015.05.01-15:59:58 - ====================================================
+2015.05.01-15:59:58 - Slog Version: 0.2.3 Snapshot Build 16 (May  1 2015)
+2015.05.01-15:59:58 - ====================================================
+2015.05.01-15:59:58 - [LIVE] Test message with level 0
+2015.05.01-15:59:58 - [LIVE] Test message with level 1
+2015.05.01-15:59:58 - [DEBUG] Test message with level 2
+2015.05.01-15:59:58 - [DEBUG] Test message with level 3
+2015.05.01-15:59:58 - [LIVE] Test message with char argument: test string
+2015.05.01-15:59:58 - [LIVE] Test message with int argument: 69
