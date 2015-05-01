@@ -23,12 +23,13 @@ Second argument is maximum log level.
 ### Config file
 
 Slog has its config file 'slog.cfg'
+
 Example:
 ```
 loglevel 3
 logtofile 1
 ```
-First value is logging level to control which levels of log should be printed.
+First value is logging level to control which levels of log should print.
 
 Second argument is log to file
 
