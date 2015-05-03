@@ -71,6 +71,12 @@ void init_slog(char* fname, int max);
 
 
 /*---------------------------------------------
+| Return string in slog format
+---------------------------------------------*/
+char* ret_slog(char *msg, ...);
+
+
+/*---------------------------------------------
 | Log exiting process
 ---------------------------------------------*/
 void slog(int level, char *msg, ...);
