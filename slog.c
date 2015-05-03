@@ -128,6 +128,38 @@ int parse_config(char *cfg_name)
 
 
 /*---------------------------------------------
+| Return string in slog format
+---------------------------------------------*/
+char* ret_slog(char *msg, ...) 
+{
+    /* Used variables */
+    char output[MAXMSG];
+    char string[MAXMSG];
+    char* mout;
+    SystemDate mdate;
+
+    /* initialise system date */
+    init_date(&mdate);
+
+    /* Read args */
+    va_list args;
+    va_start(args, msg);
+    vsprintf(string, msg, args);
+    va_end(args);
+
+    /* Generate output string with date */
+    sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s", 
+        mdate.year, mdate.mon, mdate.day, mdate.hour, mdate.min, mdate.sec, string);
+
+    /* Allocate output */
+    mout = strdup(output);
+
+    /* Return output */
+    return mout;
+}
+
+
+/*---------------------------------------------
 | Log exiting process
 ---------------------------------------------*/
 void slog(int level, char *msg, ...) 
