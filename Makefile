@@ -1,10 +1,10 @@
-CFLAGS = -g -O2 -Wall
-OBJ = slog.o
+LIB = libslog/slog.so
+CFLAGS = -g -O2 -Wall -Ilibslof
 
 example: example.c $(OBJ)
-	gcc $(CFLAGS) -o example example.c $(OBJ)
+	gcc $(CFLAGS) -o example example.c $(LIB) $(OBJ)
 
-slog.o: slog.h
+example.o: example.h
 
 .PHONY: clean
 

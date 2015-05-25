@@ -11,12 +11,9 @@ Desc: Example of slog library
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
-#include "slog.h"
+#include "libslog/slog.h"
 
 
-/*---------------------------------------------
-| Main function
----------------------------------------------*/
 int main(int argc, char *argv[])
 {
     /* Used variables */

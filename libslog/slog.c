@@ -1,21 +1,19 @@
-/*---------------------------------------------------------------------------
-
- slog is Advanced logging library for C/C++
-
- Copyright (c) 2015 Sun Dro (a.k.a. 7th Ghost)
- Web: http://off-sec.com/ ; E-Mail: kala0x13@gmail.com
-
- This is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 3 of the License, or (at your option) any later version.
-
- This software is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
-
----------------------------------------------------------------------------*/
+/*
+ *  slog is Advanced logging library for C/C++
+ *
+ *  Copyright (c) 2015 Sun Dro (a.k.a. 7th Ghost)
+ *  Web: http://off-sec.com/ ; E-Mail: kala0x13@gmail.com
+ *
+ * This is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ */
 
 
 #include <stdio.h>
@@ -32,10 +30,10 @@
 static SLogValues slog_val;
 
 
-/*---------------------------------------------
-| Initialise Date
----------------------------------------------*/
-void init_date(SystemDate *mdate) 
+/*
+ * Intialize date with system date
+ */
+ void init_date(SystemDate *mdate) 
 {
     time_t rawtime;
     struct tm *timeinfo;
@@ -52,9 +50,11 @@ void init_date(SystemDate *mdate)
 }
 
 
-/*---------------------------------------------
-| Get slog version
----------------------------------------------*/
+
+/* 
+ * Get library version. Function returns version and build number of 
+ * slog library. Return value is static char pointer.
+-*/
 const char* slog_version()
 {
     static char verstr[128];
@@ -63,9 +63,9 @@ const char* slog_version()
 }
 
 
-/*---------------------------------------------
-| Save log in file
----------------------------------------------*/
+/*
+ * Save log in file
+ */
 void log_to_file(char *out, char *fname, SystemDate *mdate) 
 {
     /* Used variables */
@@ -87,9 +87,9 @@ void log_to_file(char *out, char *fname, SystemDate *mdate)
 }
 
 
-/*---------------------------------------------
-| Parse config file
----------------------------------------------*/
+/*
+ * Parse config file
+ */
 int parse_config(char *cfg_name)
 {
     /* Used variables */
@@ -127,9 +127,10 @@ int parse_config(char *cfg_name)
 }
 
 
-/*---------------------------------------------
-| Return string in slog format
----------------------------------------------*/
+/*
+ * Retunr string in slog format. Function takes arguments and
+ * returns string in slog format without saveing in file.
+ */
 char* ret_slog(char *msg, ...) 
 {
     /* Used variables */
@@ -150,8 +151,6 @@ char* ret_slog(char *msg, ...)
     /* Generate output string with date */
     sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s", 
         mdate.year, mdate.mon, mdate.day, mdate.hour, mdate.min, mdate.sec, string);
-
-    /* Allocate output */
     mout = strdup(output);
 
     /* Return output */
@@ -159,9 +158,11 @@ char* ret_slog(char *msg, ...)
 }
 
 
-/*---------------------------------------------
-| Log exiting process
----------------------------------------------*/
+/*
+ * Log exiting process. Function takes arguments and
+ * logs process in log file if log to file flag is enabled.
+ * Otherwise it prints log with stdout.
+ */
 void slog(int level, char *msg, ...) 
 {
     /* Used variables */
@@ -195,9 +196,14 @@ void slog(int level, char *msg, ...)
 }
 
 
-/*---------------------------------------------
-| Initialise slog values
----------------------------------------------*/
+/*
+ * Initialize slog library. Function parses slog.cfg file
+ * and reads loggin level and save to file flag from it.
+ *
+ * Arguments are:
+ * @ fname - file name where log will be saved
+ * @ max - maximum aloved log level
+ */
 void init_slog(char* fname, int max) 
 {
     slog_val.level = 0;
