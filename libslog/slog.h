@@ -26,7 +26,6 @@ extern "C" {
 typedef struct {
     char* fname;
     int level;
-    int l_max;
     int to_file;
 } slog_flags;
 
@@ -61,9 +60,9 @@ const char* slog_version(int min);
  * Initialize slog library. Function parses config file and reads log 
  * level and save to file flag from config. First argument is file name 
  * where log will be saved and second argument conf is config file path 
- * to be parsedand third argument max ismaximum of allowed log level.
+ * to be parsedand third argument lvl is log level for this message.
  */
-void init_slog(char* fname, char *conf, int max);
+void init_slog(char* fname, char *conf, int lvl);
 
 
 /*

@@ -194,7 +194,7 @@ void slog(int level, char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if((!level || level <= slg.level) && level <= slg.l_max) 
+    if(!level || level <= slg.level)
     {
         /* Get output string with date */
         output = ret_slog("%s\n", string);
@@ -213,13 +213,12 @@ void slog(int level, char *msg, ...)
  * Initialize slog library. Function parses config file and reads log 
  * level and save to file flag from config. First argument is file name 
  * where log will be saved and second argument conf is config file path 
- * to be parsedand third argument max ismaximum of allowed log level.
+ * to be parsedand third argument lvl is log level for this message.
  */
-void init_slog(char* fname, char* conf, int max) 
+void init_slog(char* fname, char* conf, int lvl) 
 {
-    slg.level = 0;
+    slg.level = lvl;
     slg.fname = fname;
-    slg.l_max = max;
     slg.to_file = 0;
 
     /* Parse config file */

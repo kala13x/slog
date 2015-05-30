@@ -1,52 +1,42 @@
 ## Slog Logging Library - 1.0.49
-Advanced logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than level argument while printing with slog() function.
+Slog is simple logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than argument level while printing with slog() function.
 
 ### Usage
-If you want to use slog, you need just two files, slog.c and slog.h
-You must include slog.h header file in your code and add slog in Makefile or link it manual.
-There is Makefile example in this repository and you can see it and modify.
+If you want to use slog in your C/C++ application, at first compile it, then include slog.h header in your source file and link slog.a library while compiling your project. See examples in Makefile and example.c files.
 
 ### Simple API
 At first you must initialise slog
 ```
 slog_init("filename", "slog.cfg", 3);
 ```
-First argument "filename" is a filename where logs will be saved.
-File name will be generated from argument and also from system date.
-Finally file name will be something like that:
-```
-filename-2015-04-02.log
-```
-Second argument is config file to be parsed, where is writen slog flags, LOGLEVEL and LOGTOFILE.
-
-Third argument is maximum log level.
+Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level.
 
 ### Config file
 
-Slog has its config file 'slog.cfg'
+Log level and log to file flags can be parsed from config file.
 
-Example:
+Example of config file:
 ```
 LOGLEVEL 3
 LOGTOFILE 1
 ```
-First value is logging level to control which levels of log should print.
+First value is log level to control which levels should printed.
 
-Second argument is log to file
+Second is log to file flag
 
 Enable   | Disable
 ---------|---------
 1        | 0
 
-If 1 is given, logs will be saved in file, but it wont if argument is 0.
+If flag is 1, logs will be saved in file, otherwise it wont.
 
 
 ### Print and log something
-There is an example how use slog. You can also see, compile and run example.c source file where is full functional examples of slog.
+Here is an example how use slog.
 ```
 slog(0, "[LIVE] Test message with level 0");
 ```
-First argument is log level and second is message to print and/or save. Slog ands strings automatically with \n.
+First argument is log level and second is message to print and/or save. Slog ends strings automatically with new line character \n.
 
 ### Version
 slog_version() is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
