@@ -1,5 +1,5 @@
-LIB = libslog/slog.so
-CFLAGS = -g -O2 -Wall -Ilibslof
+LIB = libslog/slog.a
+CFLAGS = -g -O2 -Wall -Ilibslog
 
 example: example.c $(OBJ)
 	gcc $(CFLAGS) -o example example.c $(LIB) $(OBJ)

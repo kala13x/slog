@@ -1,11 +1,16 @@
 CFLAGS = -g -O2 -Wall -fPIC
 OBJS = slog.o
 
-all: $(OBJS)
-	$(CC) -shared -o slog.so $(LIB) $(OBJS)
+.c.o:
+	$(CC) $(CFLAGS) -c $< $(LIB)
+
+slog.a: $(OBJS)
+	$(AR) rcs slog.a $(OBJS)
+	@echo [-] Syncing static library
+	sync
 
 slog.o: slog.h
 
 .PHONY: clean
 clean:
-	$(RM) slog.so $(OBJS)
+	$(RM) slog.a $(OBJS)
