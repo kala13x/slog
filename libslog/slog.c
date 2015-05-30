@@ -26,14 +26,15 @@
 /* Max buffer size of message */
 #define MAXMSG 8196
 
-/* Main struct variable */
-static SLogValues slog_val;
+/* Flags */
+static slog_flags slg;
 
 
 /*
- * Intialize date with system date
+ * get_system_date - Intialize date with system date.
+ * Argument is pointer of SystemDate structure.
  */
- void init_date(SystemDate *mdate) 
+void get_system_date(SystemDate *mdate) 
 {
     time_t rawtime;
     struct tm *timeinfo;
@@ -50,21 +51,32 @@ static SLogValues slog_val;
 }
 
 
-
 /* 
- * Get library version. Function returns version and build number of 
- * slog library. Return value is static char pointer.
+ * Get library version. Function returns version and build number of slog 
+ * library. Return value is char pointer. Argument min is flag for output 
+ * format. If min is 0, function returns version in full  format, if flag 
+ * is 1 function returns only version numbers, For examle: 1.3.0
 -*/
-const char* slog_version()
+const char* slog_version(int min)
 {
     static char verstr[128];
-    sprintf(verstr, "%s Build %d (%s)", SLOGVERSION, SLOGBUILD, __DATE__);
+
+    /* Version short */
+    if (min) sprintf(verstr, "%d.%d.%d", 
+        SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD);
+
+    /* Version long */
+    else sprintf(verstr, "%d.%d build %d (%s)", 
+        SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD, __DATE__);
+
     return verstr;
 }
 
 
 /*
- * Save log in file
+ * log_to_file - Save log in file. Argument aut is string which
+ * we want to log. Argument fname is log file path and mdate is 
+ * SystemDate structure variable, we need it to create filename.
  */
 void log_to_file(char *out, char *fname, SystemDate *mdate) 
 {
@@ -88,7 +100,9 @@ void log_to_file(char *out, char *fname, SystemDate *mdate)
 
 
 /*
- * Parse config file
+ * parse_config - Parse config file. Argument cfg_name is path 
+ * of config file name to be parsed. Function opens config file 
+ * and parses LOGLEVEL and LOGTOFILE flags from it.
  */
 int parse_config(char *cfg_name)
 {
@@ -107,16 +121,16 @@ int parse_config(char *cfg_name)
     while ((read = getline(&line, &len, file)) != -1) 
     {
         /* Find level in file */
-        if(strstr(line, "loglevel") != NULL) 
+        if(strstr(line, "LOGLEVEL") != NULL) 
         {
             /* Get log level */
-            slog_val.level = atoi(line+8);
+            slg.level = atoi(line+8);
             ret = 0;
         }
-        else if(strstr(line, "logtofile") != NULL) 
+        else if(strstr(line, "LOGTOFILE") != NULL) 
         {
             /* Get log level */
-            slog_val.to_file = atoi(line+9);
+            slg.to_file = atoi(line+9);
             ret = 0;
         }
     } 
@@ -128,19 +142,19 @@ int parse_config(char *cfg_name)
 
 
 /*
- * Retunr string in slog format. Function takes arguments and
- * returns string in slog format without saveing in file.
+ * Retunr string in slog format. Function takes arguments 
+ * and returns string in slog format without printing and 
+ * saveing in file. Return value is char pointer.
  */
 char* ret_slog(char *msg, ...) 
 {
     /* Used variables */
-    char output[MAXMSG];
+    static char output[MAXMSG];
     char string[MAXMSG];
-    char* mout;
     SystemDate mdate;
 
     /* initialise system date */
-    init_date(&mdate);
+    get_system_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -150,28 +164,28 @@ char* ret_slog(char *msg, ...)
 
     /* Generate output string with date */
     sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s", 
-        mdate.year, mdate.mon, mdate.day, mdate.hour, mdate.min, mdate.sec, string);
-    mout = strdup(output);
+        mdate.year, mdate.mon, mdate.day, mdate.hour, 
+        mdate.min, mdate.sec, string);
 
     /* Return output */
-    return mout;
+    return output;
 }
 
 
 /*
- * Log exiting process. Function takes arguments and
- * logs process in log file if log to file flag is enabled.
- * Otherwise it prints log with stdout.
+ * Log exiting process. Function takes arguments and saves 
+ * logs in file if LOGTOFILE flag is enabled from config. 
+ * Otherwise it just prints log without saveing in file.
  */
 void slog(int level, char *msg, ...) 
 {
     /* Used variables */
-    char output[MAXMSG];
     char string[MAXMSG];
+    char *output;
     SystemDate mdate;
 
     /* initialise system date */
-    init_date(&mdate);
+    get_system_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -180,41 +194,38 @@ void slog(int level, char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if((!level || level <= slog_val.level) && level <= slog_val.l_max) 
+    if((!level || level <= slg.level) && level <= slg.l_max) 
     {
-        /* Generate output string with date */
-        sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s\n", 
-                mdate.year, mdate.mon, mdate.day, mdate.hour, mdate.min, mdate.sec, string);
+        /* Get output string with date */
+        output = ret_slog("%s\n", string);
 
         /* Print output */
         printf("%s", output);
 
         /* Save log in file */
-        if (slog_val.to_file) 
-            log_to_file(output, slog_val.fname, &mdate);
+        if (slg.to_file)
+            log_to_file(output, slg.fname, &mdate);
     }
 }
 
 
 /*
- * Initialize slog library. Function parses slog.cfg file
- * and reads loggin level and save to file flag from it.
- *
- * Arguments are:
- * @ fname - file name where log will be saved
- * @ max - maximum aloved log level
+ * Initialize slog library. Function parses config file and reads log 
+ * level and save to file flag from config. First argument is file name 
+ * where log will be saved and second argument conf is config file path 
+ * to be parsedand third argument max ismaximum of allowed log level.
  */
-void init_slog(char* fname, int max) 
+void init_slog(char* fname, char* conf, int max) 
 {
-    slog_val.level = 0;
-    slog_val.fname = strdup(fname);
-    slog_val.l_max = max;
-    slog_val.to_file = 0;
+    slg.level = 0;
+    slg.fname = fname;
+    slg.l_max = max;
+    slg.to_file = 0;
 
     /* Parse config file */
-    if (parse_config("slog.cfg")) 
+    if (parse_config(conf)) 
     {
-        slog(0, "[WARNING] - loglevel and/or logtofile flag is not set from config.");
+        slog(0, "[WARNING] LOGLEVEL and/or LOGTOFILE flag is not set from config.");
         return;
     }
 }

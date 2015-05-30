@@ -27,11 +27,11 @@ int main(int argc, char *argv[])
     /* Initialise slog 
     * First argument is log filename 
     * Third argument is max log level */
-    init_slog("example", 3);
+    init_slog("example", "slog.cfg", 3);
 
     /* Get and print slog version */
     slog(0, "====================================================");
-    slog(0, "Slog Version: %s", slog_version());
+    slog(0, "Slog Version: %s", slog_version(0));
     slog(0, "====================================================");
 
     /* Log and print something with level 0 */

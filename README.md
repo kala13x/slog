@@ -1,4 +1,4 @@
-## Slog Logging Library
+## Slog Logging Library - 1.0.49
 Advanced logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than level argument while printing with slog() function.
 
 ### Usage
@@ -9,7 +9,7 @@ There is Makefile example in this repository and you can see it and modify.
 ### Simple API
 At first you must initialise slog
 ```
-slog_init("filename", 3);
+slog_init("filename", "slog.cfg", 3);
 ```
 First argument "filename" is a filename where logs will be saved.
 File name will be generated from argument and also from system date.
@@ -17,8 +17,9 @@ Finally file name will be something like that:
 ```
 filename-2015-04-02.log
 ```
+Second argument is config file to be parsed, where is writen slog flags, LOGLEVEL and LOGTOFILE.
 
-Second argument is maximum log level.
+Third argument is maximum log level.
 
 ### Config file
 
@@ -26,8 +27,8 @@ Slog has its config file 'slog.cfg'
 
 Example:
 ```
-loglevel 3
-logtofile 1
+LOGLEVEL 3
+LOGTOFILE 1
 ```
 First value is logging level to control which levels of log should print.
 
@@ -48,11 +49,11 @@ slog(0, "[LIVE] Test message with level 0");
 First argument is log level and second is message to print and/or save. Slog ands strings automatically with \n.
 
 ### Version
-slog_version() is a function which returns version information of slog.
+slog_version() is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
 
 Usage:
 ```
-slog(0, "Slog Version: %s", slog_version());
+slog(0, "Slog Version: %s", slog_version(0));
 ```
 Output will be something like that:
 ```

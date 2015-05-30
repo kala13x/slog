@@ -22,26 +22,16 @@ extern "C" {
 #endif
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-
-/* Definations for version info */
-#define SLOGVERSION "0.2.3 Snapshot"
-#define SLOGBUILD 28
-
-
-/* Structure for log level */
+/* Flags */
 typedef struct {
     char* fname;
     int level;
     int l_max;
     int to_file;
-} SLogValues;
+} slog_flags;
 
 
-/* Structure of date variables */
+/* Date variables */
 typedef struct {
     int year; 
     int mon; 
@@ -52,35 +42,42 @@ typedef struct {
 } SystemDate;
 
 
+/* Definations for version info */
+#define SLOGVERSION_MAX 1
+#define SLOGVERSION_MIN 0
+#define SLOGBUILD 49
+
+
 /* 
- * Get library version. Function returns version and build number of 
- * slog library. Return value is static char pointer.
+ * Get library version. Function returns version and build number of slog 
+ * library. Return value is char pointer. Argument min is flag for output 
+ * format. If min is 0, function returns version in full  format, if flag 
+ * is 1 function returns only version numbers, For examle: 1.0.52.
 -*/
-const char* slog_version();
+const char* slog_version(int min);
 
 
 /*
- * Initialize slog library. Function parses slog.cfg file
- * and reads loggin level and save to file flag from it.
- *
- * Arguments are:
- * @ First argument is file name where log will be saved
- * @ Second argument is maximum allowed log level
+ * Initialize slog library. Function parses config file and reads log 
+ * level and save to file flag from config. First argument is file name 
+ * where log will be saved and second argument conf is config file path 
+ * to be parsedand third argument max ismaximum of allowed log level.
  */
-void init_slog(char* fname, int max);
+void init_slog(char* fname, char *conf, int max);
 
 
 /*
- * Retunr string in slog format. Function takes arguments and
- * returns string in slog format without saveing in file.
+ * Retunr string in slog format. Function takes arguments 
+ * and returns string in slog format without printing and 
+ * saveing in file. Return value is char pointer.
  */
 char* ret_slog(char *msg, ...);
 
 
 /*
- * Log exiting process. Function takes arguments and
- * logs process in log file if log to file flag is enabled.
- * Otherwise it prints log with stdout.
+ * Log exiting process. Function takes arguments and saves 
+ * logs in file if LOGTOFILE flag is enabled from config. 
+ * Otherwise it just prints log without saveing in file.
  */
 void slog(int level, char *msg, ...);
 
