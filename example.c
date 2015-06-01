@@ -7,12 +7,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <time.h>
 #include "libslog/slog.h"
 
-int main(int argc, char *argv[])
+int main()
 {
     /* Used variables */
     char char_arg[32];
