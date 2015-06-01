@@ -1,10 +1,9 @@
-/*-----------------------------------------------------
-Name: example.c
-Date: 2015.04.02
-Auth: kala13x (a.k.a 7th Ghost)
-Desc: Example of slog library
------------------------------------------------------*/
-
+/*
+ *  example.c 
+ *  Copyleft (C) 2015  Sun Dro (a.k.a 7th Ghost)
+ *
+ * Source example of slog library usage. Use GCC.
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -12,7 +11,6 @@ Desc: Example of slog library
 #include <stdarg.h>
 #include <time.h>
 #include "libslog/slog.h"
-
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +27,7 @@ int main(int argc, char *argv[])
 
     /* Get and print slog version */
     slog(0, "====================================================");
-    slog(0, "Slog Version: %s", slog_version(0));
+    slog(0, "Slog: %s", slog_version(0));
     slog(0, "====================================================");
 
     /* Log and print something with level 0 */
@@ -50,8 +48,10 @@ int main(int argc, char *argv[])
     /* Log and print something with int argument */
     slog(0, "[LIVE] Test message with int argument: %d", int_arg);
 
-    /* Test log with higher level than log max value 
-    * This will never be printed while log level argument is higher than max log level */
+    /* 
+     * Test log with higher level than log max value. This will never
+     * be printed while log level argument is higher than max log level 
+     */
     slog(4, "[LIVE] Test log with higher level than log max value");
 
     return 0;
