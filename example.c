@@ -24,9 +24,7 @@ int main(int argc, char *argv[])
     strcpy(char_arg, "test string");
     int_arg = 69;
 
-    /* Initialise slog 
-    * First argument is log filename 
-    * Third argument is max log level */
+    /* Initialise slog */
     init_slog("example", "slog.cfg", 3);
 
     /* Get and print slog version */
