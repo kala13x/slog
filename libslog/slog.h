@@ -52,7 +52,7 @@ typedef struct {
  * library. Return value is char pointer. Argument min is flag for output 
  * format. If min is 0, function returns version in full  format, if flag 
  * is 1 function returns only version number, For examle: 1.0.52.
--*/
+ */
 const char* slog_version(int min);
 
 
