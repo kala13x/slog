@@ -51,7 +51,7 @@ typedef struct {
  * Get library version. Function returns version and build number of slog 
  * library. Return value is char pointer. Argument min is flag for output 
  * format. If min is 0, function returns version in full  format, if flag 
- * is 1 function returns only version numbers, For examle: 1.0.52.
+ * is 1 function returns only version number, For examle: 1.0.52.
 -*/
 const char* slog_version(int min);
 
@@ -60,13 +60,13 @@ const char* slog_version(int min);
  * Initialize slog library. Function parses config file and reads log 
  * level and save to file flag from config. First argument is file name 
  * where log will be saved and second argument conf is config file path 
- * to be parsedand third argument lvl is log level for this message.
+ * to be parsed and third argument lvl is log level for this message.
  */
 void init_slog(char* fname, char *conf, int lvl);
 
 
 /*
- * Retunr string in slog format. Function takes arguments 
+ * Return string in slog format. Function takes arguments 
  * and returns string in slog format without printing and 
  * saveing in file. Return value is char pointer.
  */
