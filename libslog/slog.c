@@ -55,8 +55,8 @@ void get_system_date(SystemDate *mdate)
  * Get library version. Function returns version and build number of slog 
  * library. Return value is char pointer. Argument min is flag for output 
  * format. If min is 0, function returns version in full  format, if flag 
- * is 1 function returns only version numbers, For examle: 1.3.0
--*/
+ * is 1 function returns only version number, For examle: 1.3.0
+ */
 const char* slog_version(int min)
 {
     static char verstr[128];
@@ -213,7 +213,7 @@ void slog(int level, char *msg, ...)
  * Initialize slog library. Function parses config file and reads log 
  * level and save to file flag from config. First argument is file name 
  * where log will be saved and second argument conf is config file path 
- * to be parsedand third argument lvl is log level for this message.
+ * to be parsed and third argument lvl is log level for this message.
  */
 void init_slog(char* fname, char* conf, int lvl) 
 {
