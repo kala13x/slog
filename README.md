@@ -7,7 +7,7 @@ If you want to use slog in your C/C++ application, at first compile it, then inc
 ### Simple API
 At first you must initialise slog
 ```
-slog_init("filename", "slog.cfg", 3);
+init_slog("filename", "slog.cfg", 3);
 ```
 Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level.
 
