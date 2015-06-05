@@ -1,5 +1,5 @@
-## Slog Logging Library - 1.0.49
-Slog is simple logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than argument level while printing with slog() function.
+## Slog Logging Library - 1.2.61
+Slog is simple logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than argument level while printing with slog() function. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Usage
 If you want to use slog in your C/C++ application, at first compile it, then include slog.h header in your source file and link slog.a library while compiling your project. See examples in Makefile and example.c files.
@@ -30,20 +30,29 @@ Enable   | Disable
 
 If flag is 1, logs will be saved in file, otherwise it wont.
 
+### Logging flags
+Slog has its logging flags to print something with status code.
+
+- SLOG_LIVE
+- SLOG_INFO
+- SLOG_WARN
+- SLOG_DEBUG
+- SLOG_ERROR
+- SLOG_NONE
 
 ### Print and log something
 Here is an example how use slog.
 ```
-slog(0, "[LIVE] Test message with level 0");
+slog(0, SLOG_LIVE, "Test message with level 0");
 ```
-First argument is log level and second is message to print and/or save. Slog ends strings automatically with new line character \n.
+First argument is log level, second argument is logging flag, and third is message to print and/or save. Slog ends strings automatically with new line character \n.
 
 ### Version
 slog_version() is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
 
 Usage:
 ```
-slog(0, "Slog Version: %s", slog_version(0));
+slog(0, SLOG_NONE, "slog Version: %s", slog_version(0));
 ```
 Output will be something like that:
 ```

@@ -9,7 +9,7 @@ slog.a: $(OBJS)
 	@echo [-] Syncing static library
 	sync
 
-slog.o: slog.h
+slog.o: slog.h 
 
 .PHONY: clean
 clean:
