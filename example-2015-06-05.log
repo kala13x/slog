@@ -1,9 +1,9 @@
-2015.06.05-20:45:31 - =========================================
-2015.06.05-20:45:31 - sLog Version: 1.2 build 61 (Jun  5 2015)
-2015.06.05-20:45:31 - =========================================
-2015.06.05-20:45:31 - Test message with level 0
-2015.06.05-20:45:31 - Warn message with level 1
-2015.06.05-20:45:31 - Info message with level 2
-2015.06.05-20:45:31 - Test message with level 3
-2015.06.05-20:45:31 - Debug message with char argument: test string
-2015.06.05-20:45:31 - Error message with int argument: 69
+2015.06.05-20:51:38 - =========================================
+2015.06.05-20:51:38 - sLog Version: 1.2 build 61 (Jun  5 2015)
+2015.06.05-20:51:38 - =========================================
+2015.06.05-20:51:38 - Test message with level 0
+2015.06.05-20:51:38 - Warn message with level 1
+2015.06.05-20:51:38 - Info message with level 2
+2015.06.05-20:51:38 - Test message with level 3
+2015.06.05-20:51:38 - Debug message with char argument: test string
+2015.06.05-20:51:38 - Error message with int argument: 69
