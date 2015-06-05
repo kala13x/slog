@@ -1,20 +1,15 @@
-/*-----------------------------------------------------
-Name: example.c
-Date: 2015.04.02
-Auth: kala13x (a.k.a 7th Ghost)
-Desc: Example of slog library
------------------------------------------------------*/
-
+/*
+ *  example.c 
+ *  Copyleft (C) 2015  Sun Dro (a.k.a 7th Ghost)
+ *
+ * Source example of slog library usage. Use GCC.
+ */
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <time.h>
 #include "libslog/slog.h"
 
-
-int main(int argc, char *argv[])
+int main()
 {
     /* Used variables */
     char char_arg[32];
