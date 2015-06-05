@@ -40,6 +40,8 @@ Slog has its logging flags to print something with status code.
 - SLOG_ERROR
 - SLOG_NONE
 
+![alt tag](https://github.com/kala13x/slog/blob/master/slog.png)
+
 ### Print and log something
 Here is an example how use slog.
 ```
