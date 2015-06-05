@@ -62,6 +62,28 @@ void get_system_date(SystemDate *mdate)
 }
 
 
+/* 
+ * Get library version. Function returns version and build number of slog 
+ * library. Return value is char pointer. Argument min is flag for output 
+ * format. If min is 0, function returns version in full  format, if flag 
+ * is 1 function returns only version number, For examle: 1.3.0
+ */
+const char* slog_version(int min)
+{
+    static char verstr[128];
+
+    /* Version short */
+    if (min) sprintf(verstr, "%d.%d.%d", 
+        SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD_NUM);
+
+    /* Version long */
+    else sprintf(verstr, "%d.%d build %d (%s)", 
+        SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD_NUM, __DATE__);
+
+    return verstr;
+}
+
+
 /*
  * strclr - Colorize string. Function takes color value and string 
  * and returns colorized string as char pointer. First argument clr 
@@ -113,28 +135,6 @@ char* strclr(int clr, char* str, ...)
 
     /* Return output */
     return output;
-}
-
-
-/* 
- * Get library version. Function returns version and build number of slog 
- * library. Return value is char pointer. Argument min is flag for output 
- * format. If min is 0, function returns version in full  format, if flag 
- * is 1 function returns only version number, For examle: 1.3.0
- */
-const char* slog_version(int min)
-{
-    static char verstr[128];
-
-    /* Version short */
-    if (min) sprintf(verstr, "%d.%d.%d", 
-        SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD_NUM);
-
-    /* Version long */
-    else sprintf(verstr, "%d.%d build %d (%s)", 
-        SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD_NUM, __DATE__);
-
-    return verstr;
 }
 
 
