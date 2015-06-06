@@ -66,6 +66,15 @@ const char* slog_version(int min);
 
 
 /*
+ * strclr - Colorize string. Function takes color value and string 
+ * and returns colorized string as char pointer. First argument clr 
+ * is color value (if it is invalid, function retunrs NULL) and second 
+ * is string with va_list of arguments which one we want to colorize.
+ */
+char* strclr(int clr, char* str, ...);
+
+
+/*
  * Initialize slog library. Function parses config file and reads log 
  * level and save to file flag from config. First argument is file name 
  * where log will be saved and second argument conf is config file path 
