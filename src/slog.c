@@ -20,8 +20,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <time.h>
 #include <limits.h>
+#include <time.h>
 #include "slog.h"
 
 /* Supported colors */
@@ -284,6 +284,9 @@ void slog(int level, int flag, const char *msg, ...)
                 sprintf(prints, "[%s] %s", strclr(2, "ERROR"), string);
                 break;
             case 6:
+                sprintf(prints, "[%s] %s", strclr(2, "FATAL"), string);
+                break;
+            case 7:
                 sprintf(prints, "%s", string);
                 break;
             default:

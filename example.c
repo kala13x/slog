@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "libslog/slog.h"
+#include "src/slog.h"
 
 int main()
 {
