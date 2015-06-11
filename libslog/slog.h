@@ -50,7 +50,7 @@ typedef struct {
 
 /* Flags */
 typedef struct {
-    char* fname;
+    const char* fname;
     int level;
     int to_file;
 } slog_flags;
@@ -80,7 +80,7 @@ char* strclr(int clr, char* str, ...);
  * where log will be saved and second argument conf is config file path 
  * to be parsed and third argument lvl is log level for this message.
  */
-void init_slog(char* fname, char *conf, int lvl);
+void init_slog(const char* fname, const char *conf, int lvl);
 
 
 /*
@@ -97,7 +97,7 @@ char* ret_slog(char *msg, ...);
  * it just prints log without saveing in file. Argument level is 
  * logging level and flag is slog flags defined in slog.h header.
  */
-void slog(int level, int flag, char *msg, ...);
+void slog(int level, int flag, const char *msg, ...);
 
 
 /* For include header in CPP code */

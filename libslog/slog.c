@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
+#include <limits.h>
 #include "slog.h"
 
 /* Supported colors */
@@ -143,10 +144,10 @@ char* strclr(int clr, char* str, ...)
  * we want to log. Argument fname is log file path and mdate is 
  * SystemDate structure variable, we need it to create filename.
  */
-void log_to_file(char *out, char *fname, SystemDate *mdate) 
+void log_to_file(char *out, const char *fname, SystemDate *mdate)
 {
     /* Used variables */
-    char filename[32];
+    char filename[PATH_MAX];
 
     /* Create log filename with date */
     sprintf(filename, "%s-%02d-%02d-%02d.log", 
@@ -169,7 +170,7 @@ void log_to_file(char *out, char *fname, SystemDate *mdate)
  * of config file name to be parsed. Function opens config file 
  * and parses LOGLEVEL and LOGTOFILE flags from it.
  */
-int parse_config(char *cfg_name)
+int parse_config(const char *cfg_name)
 {
     /* Used variables */
     FILE *file;
@@ -245,7 +246,7 @@ char* ret_slog(char *msg, ...)
  * it just prints log without saveing in file. Argument level is 
  * logging level and flag is slog flags defined in slog.h header.
  */
-void slog(int level, int flag, char *msg, ...) 
+void slog(int level, int flag, const char *msg, ...)
 {
     /* Used variables */
     SystemDate mdate;
@@ -308,7 +309,7 @@ void slog(int level, int flag, char *msg, ...)
  * where log will be saved and second argument conf is config file path 
  * to be parsed and third argument lvl is log level for this message.
  */
-void init_slog(char* fname, char* conf, int lvl) 
+void init_slog(const char* fname, const char* conf, int lvl)
 {
     slg.level = lvl;
     slg.fname = fname;
