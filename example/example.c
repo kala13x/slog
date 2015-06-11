@@ -7,7 +7,15 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "src/slog.h"
+#include "../src/slog.h"
+
+void greet() 
+{
+    /* Get and print slog version */
+    slog(0, SLOG_NONE, "=========================================");
+    slog(0, SLOG_NONE, "sLog Version: %s", slog_version(0));
+    slog(0, SLOG_NONE, "=========================================");
+}
 
 int main()
 {
@@ -27,10 +35,8 @@ int main()
      */
     init_slog("example", "slog.cfg", 3);
 
-    /* Get and print slog version */
-    slog(0, SLOG_NONE, "=========================================");
-    slog(0, SLOG_NONE, "sLog Version: %s", slog_version(0));
-    slog(0, SLOG_NONE, "=========================================");
+	/* Greet users */
+	greet();
 
     /* Log and print something with level 0 */
     slog(0, SLOG_LIVE, "Test message with level 0");
