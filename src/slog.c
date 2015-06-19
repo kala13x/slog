@@ -1,18 +1,10 @@
 /*
- *  slog is Advanced logging library for C/C++
+ *  src/slog.c
  *
- *  Copyright (c) 2015 Sun Dro (a.k.a. 7th Ghost)
- *  Web: http://off-sec.com/ ; E-Mail: kala0x13@gmail.com
+ *  Copyleft (C) 2015  Sun Dro (a.k.a. kala13x)
  *
- * This is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * Advanced logging library for C/C++ projects.
+ * Licensed by MIT, see LICENSE file for more information.
  */
 
 
