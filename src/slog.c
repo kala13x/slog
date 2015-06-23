@@ -277,7 +277,7 @@ void slog(int level, int flag, const char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if(level <= slg.level)
+    if(level >= slg.level)
     {
         /* Handle flags */
         switch(flag) {
