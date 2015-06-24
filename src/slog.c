@@ -206,6 +206,12 @@ int parse_config(const char *cfg_name)
             slg.to_file = atoi(line+9);
             ret = 0;
         }
+        else if(strstr(line, "PRETTY_LOG") != NULL)
+        {
+            /* Get log level */
+            slg.pretty_log = atoi(line+10);
+            ret = 0;
+		}
     }
 
     /* Cleanup */
@@ -271,7 +277,7 @@ void slog(int level, int flag, const char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if(level <= slg.level)
+    if(level >= slg.level)
     {
         /* Handle flags */
         switch(flag) {
@@ -306,7 +312,10 @@ void slog(int level, int flag, const char *msg, ...)
         /* Save log in file */
         if (slg.to_file)
         {
-            output = ret_slog("%s\n", string);
+			if (slg.pretty_log)
+				output = ret_slog("%s\n", prints);
+			else
+				output = ret_slog("%s\n", string);
             log_to_file(output, slg.fname, &mdate);
         }
     }
