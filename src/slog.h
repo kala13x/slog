@@ -32,7 +32,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  2
-#define SLOGBUILD_NUM    63
+#define SLOGBUILD_NUM    64
 
 
 /* Loging flags */
@@ -61,7 +61,7 @@ typedef struct {
     const char* fname;
     int level;
     int to_file;
-	int pretty_log;
+	int pretty;
 } slog_flags;
 
 

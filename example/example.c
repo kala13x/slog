@@ -13,7 +13,7 @@ void greet()
 {
     /* Get and print slog version */
     slog(0, SLOG_NONE, "=========================================");
-    slog(0, SLOG_NONE, "sLog Version: %s", slog_version(0));
+    slog(0, SLOG_NONE, "slog Version: %s", slog_version(0));
     slog(0, SLOG_NONE, "=========================================");
 }
 

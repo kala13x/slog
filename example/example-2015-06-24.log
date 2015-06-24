@@ -1,0 +1,9 @@
+2015.06.24-13:23:40 - =========================================
+2015.06.24-13:23:40 - slog Version: 1.2 build 64 (Jun 24 2015)
+2015.06.24-13:23:40 - =========================================
+2015.06.24-13:23:40 - Test message with level 0
+2015.06.24-13:23:40 - Warn message with level 1
+2015.06.24-13:23:40 - Info message with level 2
+2015.06.24-13:23:40 - Test message with level 3
+2015.06.24-13:23:40 - Debug message with char argument: test string
+2015.06.24-13:23:40 - Error message with int argument: 69
