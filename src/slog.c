@@ -184,7 +184,7 @@ int parse_config(const char *cfg_name)
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
-    int ret = 1;
+    int ret = 0;
 
     /* Open file pointer */
     file = fopen(cfg_name, "r");
@@ -198,19 +198,19 @@ int parse_config(const char *cfg_name)
         {
             /* Get log level */
             slg.level = atoi(line+8);
-            ret = 0;
+            ret = 1;
         }
         else if(strstr(line, "LOGTOFILE") != NULL)
         {
             /* Get log level */
             slg.to_file = atoi(line+9);
-            ret = 0;
+            ret = 1;
         }
         else if(strstr(line, "PRETTYLOG") != NULL)
         {
             /* Get log type */
             slg.pretty = atoi(line+9);
-            ret = 0;
+            ret = 1;
         }
     }
 
@@ -249,7 +249,7 @@ char* ret_slog(char *msg, ...)
         mdate.year, mdate.mon, mdate.day, mdate.hour,
         mdate.min, mdate.sec, string);
 
-    /* free memory */
+    /* Free memory */
     free(string);
 
     /* Return output */
@@ -317,17 +317,18 @@ void slog(int level, int flag, const char *msg, ...)
         /* Save log in file */
         if (slg.to_file)
         {
-            /* free char *output before using it for something else */
+            /* Cleanup output string */
             free(output);
-            if (slg.pretty)
-                output = ret_slog("%s\n", prints);
-            else
-                output = ret_slog("%s\n", string);
+
+            if (slg.pretty) output = ret_slog("%s\n", prints);
+            else output = ret_slog("%s\n", string);
+
+            /* Save log in file */
             log_to_file(output, slg.fname, &mdate);
         }
     }
 
-    /* free memory that we have used */
+    /* Free memory that we have used */
     free(string);
     free(output);
     free(prints);
@@ -348,6 +349,6 @@ void init_slog(const char* fname, const char* conf, int lvl)
     slg.pretty = 0;
 
     /* Parse config file */
-    if (parse_config(conf))
+    if (!parse_config(conf))
         slog(0, SLOG_WARN, "LOGLEVEL and/or LOGTOFILE flag is not set from config.");
 }
