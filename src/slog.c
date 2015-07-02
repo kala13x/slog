@@ -1,6 +1,6 @@
 /*
  * The MIT License (MIT)
- *  
+ *
  *  Copyleft (C) 2015  Sun Dro (a.k.a. kala13x)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -43,7 +43,7 @@
 #define CLR_RESET    "\033[0m"
 
 /* Max size of string */
-#define MAXMSG 8196
+#define MAXCLR 64
 
 /* Flags */
 static slog_flags slg;
@@ -101,8 +101,8 @@ const char* slog_version(int min)
 char* strclr(int clr, char* str, ...)
 {
     /* String buffers */
-    static char output[MAXMSG];
-    char string[MAXMSG];
+    static char output[MAXCLR];
+    char string[MAXCLR];
 
     /* Read args */
     va_list args;
@@ -230,8 +230,9 @@ int parse_config(const char *cfg_name)
 char* ret_slog(char *msg, ...)
 {
     /* Used variables */
-    static char output[MAXMSG];
-    char string[MAXMSG];
+    char *output;
+    char *string;
+
     SystemDate mdate;
 
     /* initialise system date */
@@ -240,13 +241,16 @@ char* ret_slog(char *msg, ...)
     /* Read args */
     va_list args;
     va_start(args, msg);
-    vsprintf(string, msg, args);
+    vasprintf(&string, msg, args);
     va_end(args);
 
     /* Generate output string with date */
-    sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s",
+    asprintf(&output, "%02d.%02d.%02d-%02d:%02d:%02d - %s",
         mdate.year, mdate.mon, mdate.day, mdate.hour,
         mdate.min, mdate.sec, string);
+
+    /* free memory */
+    free(string);
 
     /* Return output */
     return output;
@@ -263,9 +267,9 @@ void slog(int level, int flag, const char *msg, ...)
 {
     /* Used variables */
     SystemDate mdate;
-    char string[MAXMSG];
-    char prints[MAXMSG];
-    char *output;
+    char *string = NULL;
+    char *prints = NULL;;
+    char *output = NULL;;
 
     /* Initialise system date */
     get_system_date(&mdate);
@@ -273,7 +277,7 @@ void slog(int level, int flag, const char *msg, ...)
     /* Read args */
     va_list args;
     va_start(args, msg);
-    vsprintf(string, msg, args);
+    vasprintf(&string, msg, args);
     va_end(args);
 
     /* Check logging levels */
@@ -282,44 +286,51 @@ void slog(int level, int flag, const char *msg, ...)
         /* Handle flags */
         switch(flag) {
             case 1:
-                sprintf(prints, "[LIVE]  %s", string);
+                asprintf(&prints, "[LIVE]  %s", string);
                 break;
             case 2:
-                sprintf(prints, "[%s]  %s", strclr(1, "INFO"), string);
+                asprintf(&prints, "[%s]  %s", strclr(1, "INFO"), string);
                 break;
             case 3:
-                sprintf(prints, "[%s]  %s", strclr(3, "WARN"), string);
+                asprintf(&prints, "[%s]  %s", strclr(3, "WARN"), string);
                 break;
             case 4:
-                sprintf(prints, "[%s] %s", strclr(4, "DEBUG"), string);
+                asprintf(&prints, "[%s] %s", strclr(4, "DEBUG"), string);
                 break;
             case 5:
-                sprintf(prints, "[%s] %s", strclr(2, "ERROR"), string);
+                asprintf(&prints, "[%s] %s", strclr(2, "ERROR"), string);
                 break;
             case 6:
-                sprintf(prints, "[%s] %s", strclr(2, "FATAL"), string);
+                asprintf(&prints, "[%s] %s", strclr(2, "FATAL"), string);
                 break;
             case 7:
-                sprintf(prints, "%s", string);
+                asprintf(&prints, "%s", string);
                 break;
             default:
                 break;
         }
 
         /* Print output */
-        printf("%s", ret_slog("%s\n", prints));
+        output = ret_slog("%s\n", prints);
+        printf("%s", output);
 
         /* Save log in file */
         if (slg.to_file)
         {
+            /* free char *output before using it for something else */
+            free(output);
             if (slg.pretty)
                 output = ret_slog("%s\n", prints);
             else
                 output = ret_slog("%s\n", string);
-
             log_to_file(output, slg.fname, &mdate);
         }
     }
+
+    /* free memory that we have used */
+    free(string);
+    free(output);
+    free(prints);
 }
 
 
