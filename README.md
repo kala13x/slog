@@ -57,14 +57,14 @@ First argument is log level, second argument is logging flag, and third is messa
 You can colorize strings with strclr function. Usage is very simple, first argument is color value and second argument is string which we want to colorize.
 
  Color values are:
-   0 - Normal
-   1 - Green
-   2 - Red
-   3 - Yellow
-   4 - Blue
-   5 - Nagenta
-   6 - Cyan
-   7 - White
+- 0 - Normal
+- 1 - Green
+- 2 - Red
+- 3 - Yellow
+- 4 - Blue
+- 5 - Nagenta
+- 6 - Cyan
+- 7 - White
 
 For example, if we want to print something with red color, code will be something like that:
 ```
