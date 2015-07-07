@@ -1,4 +1,4 @@
-## Slog Logging Library - 1.3.67
+## Slog Logging Library - 1.3.69
 Slog is simple logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than argument level while printing with slog() function. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Usage
@@ -53,6 +53,25 @@ slog(0, SLOG_LIVE, "Test message with level 0");
 ```
 First argument is log level, second argument is logging flag, and third is message to print and/or save. Slog ends strings automatically with new line character \n.
 
+### Colorize output
+You can colorize strings with strclr function. Usage is very simple, first argument is color value and second argument is string which we want to colorize.
+
+ Color values are:
+   0 - Normal
+   1 - Green
+   2 - Red
+   3 - Yellow
+   4 - Blue
+   5 - Nagenta
+   6 - Cyan
+   7 - White
+
+For example, if we want to print something with red color, code will be something like that:
+```
+char *ret = strclr(2, "Test string");
+slog(0, SLOG_NONE, "This is colorized string: %s", ret);
+```
+
 ### Version
 slog_version() is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
 
@@ -68,10 +87,13 @@ Output will be something like that:
 ### Output
 Here is example output strings of slog
 ```
-2015.05.01-15:59:58 - [LIVE] Test message with level 0
-2015.05.01-15:59:58 - [LIVE] Test message with level 1
-2015.05.01-15:59:58 - [DEBUG] Test message with level 2
-2015.05.01-15:59:58 - [DEBUG] Test message with level 3
-2015.05.01-15:59:58 - [LIVE] Test message with char argument: test string
-2015.05.01-15:59:58 - [LIVE] Test message with int argument: 69
+2015.07.07-18:07:08 - [INFO]  Loading logger config from: slog.cfg
+2015.07.07-18:07:08 - [LIVE]  Test message with level 0
+2015.07.07-18:07:08 - [WARN]  Warn message with level 1
+2015.07.07-18:07:08 - [INFO]  Info message with level 2
+2015.07.07-18:07:08 - [LIVE]  Test message with level 3
+2015.07.07-18:07:08 - [DEBUG] Debug message with char argument: test string
+2015.07.07-18:07:08 - [ERROR] Error message with int argument: 69
+2015.07.07-18:07:08 - [TEST]  This is our own colorized string
+
 ```

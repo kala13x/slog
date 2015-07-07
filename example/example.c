@@ -27,6 +27,9 @@ int main()
     strcpy(char_arg, "test string");
     int_arg = 69;
 
+	/* Greet users */
+	greet();
+
     /* 
      * init_slog - Initialise slog 
      * First argument is log filename 
@@ -34,9 +37,6 @@ int main()
      * Third argument is max log level 
      */
     init_slog("example", "slog.cfg", 3);
-
-	/* Greet users */
-	greet();
 
     /* Log and print something with level 0 */
     slog(0, SLOG_LIVE, "Test message with level 0");
@@ -59,6 +59,9 @@ int main()
     /* Test log with higher level than log max value 
     * This will never be printed while log level argument is higher than max log level */
     slog(4, SLOG_NONE, "[LIVE] Test log with higher level than log max value");
+
+    /* Print something with our own colorized line */
+    slog(0, SLOG_NONE, "[%s]  This is our own colorized string", strclr(6, "TEST"));
 
     return 0;
 }

@@ -31,8 +31,8 @@ extern "C" {
 
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
-#define SLOGVERSION_MIN  3
-#define SLOGBUILD_NUM    67
+#define SLOGVERSION_MIN  4
+#define SLOGBUILD_NUM    69
 
 
 /* Loging flags */
@@ -53,7 +53,7 @@ typedef struct {
     int hour;
     int min;
     int sec;
-} SystemDate;
+} SlogDate;
 
 
 /* Flags */
@@ -62,7 +62,14 @@ typedef struct {
     int level;
     int to_file;
 	int pretty;
-} slog_flags;
+} SlogFlags;
+
+
+/*
+ * get_slog_date - Intialize date with system date.
+ * Argument is pointer of SlogDate structure.
+ */
+void get_slog_date(SlogDate *sdate);
 
 
 /*
@@ -79,6 +86,16 @@ const char* slog_version(int min);
  * and returns colorized string as char pointer. First argument clr
  * is color value (if it is invalid, function retunrs NULL) and second
  * is string with va_list of arguments which one we want to colorize.
+ * 
+ * Color values are:
+ *  0 - Normal
+ *  1 - Green
+ *  2 - Red
+ *  3 - Yellow
+ *  4 - Blue
+ *  5 - Nagenta
+ *  6 - Cyan
+ *  7 - White
  */
 char* strclr(int clr, char* str, ...);
 

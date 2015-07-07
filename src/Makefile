@@ -1,4 +1,4 @@
-CFLAGS = -g -O2 -Wall -D_GNU_SOURCE
+CFLAGS = -g -O2 -Wall
 OBJS = slog.o
 
 .c.o:
