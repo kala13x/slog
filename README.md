@@ -72,6 +72,22 @@ char *ret = strclr(2, "Test string");
 slog(0, SLOG_NONE, "This is colorized string: %s", ret);
 ```
 
+### Get date
+You can check and get system date with get_slog_date function. Argument is pointer of SlogDate structure. For example if you want to print system date which uses slog, code will be something like that:
+```
+SlogDate date;
+get_slog_date(&date);
+```
+Values will be saved with 24h format at SlogDate structure members.
+```
+date.year;
+date.mon;
+date.day;
+date.hour;
+date.min;
+date.sec;
+```
+
 ### Version
 slog_version() is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
 
