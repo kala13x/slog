@@ -1,4 +1,4 @@
-## Slog Logging Library - 1.3.69
+## Slog Logging Library - 1.4.69
 Slog is simple logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than argument level while printing with slog() function. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Usage
