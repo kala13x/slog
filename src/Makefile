@@ -4,8 +4,8 @@ OBJS = slog.o
 .c.o:
 	$(CC) $(CFLAGS) -c $< $(LIB)
 
-slog.a: $(OBJS)
-	$(AR) rcs slog.a $(OBJS)
+libslog.a: $(OBJS)
+	$(AR) rcs libslog.a $(OBJS)
 	@echo [-] Syncing static library
 	sync
 
@@ -13,4 +13,4 @@ slog.o: slog.h
 
 .PHONY: clean
 clean:
-	$(RM) slog.a $(OBJS)
+	$(RM) libslog.a $(OBJS)
