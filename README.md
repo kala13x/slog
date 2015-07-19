@@ -1,15 +1,25 @@
-## Slog Logging Library - 1.4 build 70
-Slog is simple logging library for C/C++ which parses log level from config file and prints log if log level from config is equal or higher than argument level while printing with slog() function. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
+## slog Logging Library - 1.4 build 70
+Slog is simple logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
+
+### Installation
+Installation is possible with makefile
+```
+git clone https://github.com/kala13x/slog.git
+cd slog/src
+make
+sudo make install
+```
 
 ### Usage
-If you want to use slog in your C/C++ application, at first compile it, then include slog.h header in your source file and link slog.a library while compiling your project. See examples in Makefile and example.c files.
+If you want to use slog in your C/C++ application, include slog.h header in your source file and link slog library with -lslog linker flag while compiling your project. See examples in example.c and Makefile.
+
 
 ### Simple API
 At first you must initialise slog
 ```
 init_slog("filename", "slog.cfg", 3);
 ```
-Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level.
+Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level. If you will not initialize slog, it will only print messages with loglevel 0.
 
 ### Config file
 
