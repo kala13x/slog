@@ -1,5 +1,5 @@
-LIB = ../src/slog.a
-CFLAGS = -g -O2 -Wall -I../src
+LIB = -lslog
+CFLAGS = -g -O2 -Wall
 
 example: example.c $(OBJ)
 	gcc $(CFLAGS) -o example example.c $(LIB) $(OBJ)

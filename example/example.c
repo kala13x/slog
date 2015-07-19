@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "../src/slog.h"
+#include <slog.h>
 
 void greet() 
 {

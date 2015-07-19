@@ -32,7 +32,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    69
+#define SLOGBUILD_NUM    70
 
 
 /* Loging flags */
