@@ -61,7 +61,7 @@ typedef struct {
     const char* fname;
     int level;
     int to_file;
-	int pretty;
+    int pretty;
 } SlogFlags;
 
 
