@@ -22,6 +22,8 @@
  * SOFTWARE
  */
 
+#ifndef __LIB_SLOG_H__
+#define __LIB_SLOG_H__
 
 /* For include header in CPP code */
 #ifdef __cplusplus
@@ -129,4 +131,6 @@ void slog(int level, int flag, const char *msg, ...);
 /* For include header in CPP code */
 #ifdef __cplusplus
 }
+#endif
+
 #endif
