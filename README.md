@@ -30,6 +30,7 @@ Example of config file:
 LOGLEVEL 3
 LOGTOFILE 1
 PRETTYLOG 0
+FILESTAMP 1
 ```
 First value is log level to control which levels should printed.
 
@@ -42,6 +43,8 @@ Enable   | Disable
 If flag is 1, logs will be saved in file, otherwise it wont.
 
 Third value is pretty log, if this flag is enabled, slog will save colored strings in file, otherwise it wont.
+
+Fourth value is log file timstamp. If this flag is enabled, the log filename provided will have a datestamp and ".log" appended to it for each write. Otherwise log filename will always be the same as provided to init_slog().
 
 ### Logging flags
 Slog has its logging flags to print something with status code.

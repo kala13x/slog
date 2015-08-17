@@ -167,8 +167,13 @@ void log_to_file(char *out, const char *fname, SlogDate *sdate)
     char filename[PATH_MAX];
 
     /* Create log filename with date */
-    sprintf(filename, "%s-%02d-%02d-%02d.log",
-        fname, sdate->year, sdate->mon, sdate->day);
+    if (slg.filestamp)
+    {
+        snprintf(filename, sizeof(filename), "%s-%02d-%02d-%02d.log",
+            fname, sdate->year, sdate->mon, sdate->day);
+    }
+    else
+        snprintf(filename, sizeof(filename), "%s", fname);
 
     /* Open file pointer */
     FILE *fp = fopen(filename, "a");
@@ -212,7 +217,7 @@ int parse_config(const char *cfg_name)
         }
         else if(strstr(line, "LOGTOFILE") != NULL)
         {
-            /* Get log level */
+            /* Get log file enable/disable */
             slg.to_file = atoi(line+9);
             ret = 1;
         }
@@ -220,6 +225,12 @@ int parse_config(const char *cfg_name)
         {
             /* Get log type */
             slg.pretty = atoi(line+9);
+            ret = 1;
+        }
+        else if(strstr(line, "FILESTAMP") != NULL)
+        {
+            /* Get log type */
+            slg.filestamp = atoi(line+9);
             ret = 1;
         }
     }
@@ -348,6 +359,7 @@ void init_slog(const char* fname, const char* conf, int lvl)
     slg.level = lvl;
     slg.to_file = 0;
     slg.pretty = 0;
+    slg.filestamp = 1;
 
     /* Parse config file */
     if (conf != NULL) 

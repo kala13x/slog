@@ -64,6 +64,7 @@ typedef struct {
     int level;
     int to_file;
     int pretty;
+    int filestamp;
 } SlogFlags;
 
 
