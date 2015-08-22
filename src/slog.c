@@ -107,12 +107,14 @@ const char* slog_version(int min)
  *  5 - Nagenta
  *  6 - Cyan
  *  7 - White
+ *  8 - No Color (returns input string)
  */
 char* strclr(int clr, char* str, ...)
 {
     /* String buffers */
     static char output[MAXMSG];
     char string[MAXMSG];
+    char *colorstr, *resetstr;
 
     /* Read args */
     va_list args;
@@ -121,37 +123,33 @@ char* strclr(int clr, char* str, ...)
     va_end(args);
 
     /* Handle colors */
+    resetstr = CLR_RESET;
     switch(clr)
     {
         case 0:
-            sprintf(output, "%s%s%s", CLR_NORM, string, CLR_RESET);
-            break;
+            colorstr = CLR_NORM; break;
         case 1:
-            sprintf(output, "%s%s%s", CLR_GREEN, string, CLR_RESET);
-            break;
+            colorstr = CLR_GREEN; break;
         case 2:
-            sprintf(output, "%s%s%s", CLR_RED, string, CLR_RESET);
-            break;
+            colorstr = CLR_RED; break;
         case 3:
-            sprintf(output, "%s%s%s", CLR_YELLOW, string, CLR_RESET);
-            break;
+            colorstr = CLR_YELLOW; break;
         case 4:
-            sprintf(output, "%s%s%s", CLR_BLUE, string, CLR_RESET);
-            break;
+            colorstr = CLR_BLUE; break;
         case 5:
-            sprintf(output, "%s%s%s", CLR_NAGENTA, string, CLR_RESET);
-            break;
+            colorstr = CLR_NAGENTA; break;
         case 6:
-            sprintf(output, "%s%s%s", CLR_CYAN, string, CLR_RESET);
-            break;
+            colorstr = CLR_CYAN; break;
         case 7:
-            sprintf(output, "%s%s%s", CLR_WHITE, string, CLR_RESET);
-            break;
+            colorstr = CLR_WHITE; break;
+        case 8:
+            colorstr = ""; resetstr = ""; break;
         default:
             return NULL;
     }
-
+    
     /* Return output */
+    snprintf(output, sizeof(output), "%s%s%s", colorstr, string, resetstr);
     return output;
 }
 
@@ -167,8 +165,13 @@ void log_to_file(char *out, const char *fname, SlogDate *sdate)
     char filename[PATH_MAX];
 
     /* Create log filename with date */
-    sprintf(filename, "%s-%02d-%02d-%02d.log",
-        fname, sdate->year, sdate->mon, sdate->day);
+    if (slg.filestamp)
+    {
+        snprintf(filename, sizeof(filename), "%s-%02d-%02d-%02d.log",
+            fname, sdate->year, sdate->mon, sdate->day);
+    }
+    else
+        snprintf(filename, sizeof(filename), "%s", fname);
 
     /* Open file pointer */
     FILE *fp = fopen(filename, "a");
@@ -212,7 +215,7 @@ int parse_config(const char *cfg_name)
         }
         else if(strstr(line, "LOGTOFILE") != NULL)
         {
-            /* Get log level */
+            /* Get log file enable/disable */
             slg.to_file = atoi(line+9);
             ret = 1;
         }
@@ -220,6 +223,12 @@ int parse_config(const char *cfg_name)
         {
             /* Get log type */
             slg.pretty = atoi(line+9);
+            ret = 1;
+        }
+        else if(strstr(line, "FILESTAMP") != NULL)
+        {
+            /* Get log type */
+            slg.filestamp = atoi(line+9);
             ret = 1;
         }
     }
@@ -276,6 +285,8 @@ void slog(int level, int flag, const char *msg, ...)
     char string[MAXMSG];
     char prints[MAXMSG];
     char *output;
+    char *tag;
+    int  color=0;
 
     /* Initialise system date */
     get_slog_date(&sdate);
@@ -291,41 +302,39 @@ void slog(int level, int flag, const char *msg, ...)
     {
         /* Handle flags */
         switch(flag) {
-            case 1:
-                sprintf(prints, "[LIVE]  %s", string);
+            case SLOG_LIVE:
+                tag = "LIVE "; color = 8;
                 break;
-            case 2:
-                sprintf(prints, "[%s]  %s", strclr(1, "INFO"), string);
+            case SLOG_INFO:
+                tag = "INFO "; color = 1;
                 break;
-            case 3:
-                sprintf(prints, "[%s]  %s", strclr(3, "WARN"), string);
+            case SLOG_WARN:
+                tag = "WARN "; color = 3;
                 break;
-            case 4:
-                sprintf(prints, "[%s] %s", strclr(4, "DEBUG"), string);
+            case SLOG_DEBUG:
+                tag = "DEBUG"; color = 4;
                 break;
-            case 5:
-                sprintf(prints, "[%s] %s", strclr(2, "ERROR"), string);
+            case SLOG_ERROR:
+                tag = "ERROR"; color = 2;
                 break;
-            case 6:
-                sprintf(prints, "[%s] %s", strclr(2, "FATAL"), string);
+            case SLOG_FATAL:
+                tag = "FATAL"; color = 2;
                 break;
-            case 7:
-                sprintf(prints, "%s", string);
-                break;
+            case SLOG_NONE:
             default:
-                break;
+                tag = ""; color = 8;
         }
 
         /* Print output */
+        snprintf(prints, sizeof(prints), "[%s] %s", strclr(color, tag), string);
         printf("%s", ret_slog("%s\n", prints));
 
         /* Save log in file */
         if (slg.to_file)
         {
-            if (slg.pretty)
-                output = ret_slog("%s\n", prints);
-            else
-                output = ret_slog("%s\n", string);
+            if (!slg.pretty)
+                snprintf(prints, sizeof(prints), "[%s] %s", tag, string);
+            output = ret_slog("%s\n", prints);
 
             /* Add log line to file */
             log_to_file(output, slg.fname, &sdate);
@@ -348,6 +357,7 @@ void init_slog(const char* fname, const char* conf, int lvl)
     slg.level = lvl;
     slg.to_file = 0;
     slg.pretty = 0;
+    slg.filestamp = 1;
 
     /* Parse config file */
     if (conf != NULL) 
