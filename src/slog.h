@@ -34,7 +34,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    70
+#define SLOGBUILD_NUM    71
 
 
 /* Loging flags */
@@ -99,6 +99,7 @@ const char* slog_version(int min);
  *  5 - Nagenta
  *  6 - Cyan
  *  7 - White
+ *  8 - No Color (returns input string)
  */
 char* strclr(int clr, char* str, ...);
 

@@ -322,18 +322,29 @@ void slog(int level, int flag, const char *msg, ...)
                 break;
             case SLOG_NONE:
             default:
-                tag = ""; color = 8;
+                tag = ""; color = 2;
+                break;
         }
 
+        /* Get ready */
+        if (flag == SLOG_NONE)
+            snprintf(prints, sizeof(prints), "%s", string);
+        else 
+            snprintf(prints, sizeof(prints), "[%s] %s", strclr(color, tag), string);
+
         /* Print output */
-        snprintf(prints, sizeof(prints), "[%s] %s", strclr(color, tag), string);
         printf("%s", ret_slog("%s\n", prints));
 
         /* Save log in file */
         if (slg.to_file)
         {
-            if (!slg.pretty)
-                snprintf(prints, sizeof(prints), "[%s] %s", tag, string);
+            if (!slg.pretty) 
+            {
+                if (flag == SLOG_NONE)
+                    snprintf(prints, sizeof(prints), "%s", string);
+                else 
+                    snprintf(prints, sizeof(prints), "[%s] %s", tag, string);
+            }
             output = ret_slog("%s\n", prints);
 
             /* Add log line to file */
