@@ -22,8 +22,10 @@
  * SOFTWARE
  */
 
-#ifndef __LIB_SLOG_H__
-#define __LIB_SLOG_H__
+
+#ifndef __SLOG_H__
+#define __SLOG_H__
+
 
 /* For include header in CPP code */
 #ifdef __cplusplus
@@ -34,7 +36,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    71
+#define SLOGBUILD_NUM    74
 
 
 /* Loging flags */
@@ -47,10 +49,20 @@ extern "C" {
 #define SLOG_NONE   7
 
 
+/* Flags */
+typedef struct {
+    const char* fname;
+    short level;
+    short to_file;
+    short pretty;
+    short filestamp;
+} SlogFlags;
+
+
 /* Date variables */
 typedef struct {
-    int year;
-    int mon;
+    int year; 
+    int mon; 
     int day;
     int hour;
     int min;
@@ -58,30 +70,22 @@ typedef struct {
 } SlogDate;
 
 
-/* Flags */
-typedef struct {
-    const char* fname;
-    int level;
-    int to_file;
-    int pretty;
-    int filestamp;
-} SlogFlags;
-
-
-/*
- * get_slog_date - Intialize date with system date.
- * Argument is pointer of SlogDate structure.
- */
-void get_slog_date(SlogDate *sdate);
-
-
-/*
- * Get library version. Function returns version and build number of slog
- * library. Return value is char pointer. Argument min is flag for output
- * format. If min is 0, function returns version in full  format, if flag
- * is 1 function returns only version number, For examle: 1.3.0
- */
+/* 
+ * Get library version. Function returns version and build number of slog 
+ * library. Return value is char pointer. Argument min is flag for output 
+ * format. If min is 1, function returns version in full  format, if flag 
+ * is 0 function returns only version numbers, For examle: 1.0.52.
+-*/
 const char* slog_version(int min);
+
+
+/*
+ * Initialize slog library. Function parses config file and reads log
+ * level and save to file flag from config. First argument is file name
+ * where log will be saved and second argument conf is config file path
+ * to be parsed and third argument lvl is log level for this message.
+ */
+void init_slog(const char* fname, const char *conf, int lvl);
 
 
 /*
@@ -99,18 +103,8 @@ const char* slog_version(int min);
  *  5 - Nagenta
  *  6 - Cyan
  *  7 - White
- *  8 - No Color (returns input string)
  */
 char* strclr(int clr, char* str, ...);
-
-
-/*
- * Initialize slog library. Function parses config file and reads log
- * level and save to file flag from config. First argument is file name
- * where log will be saved and second argument conf is config file path
- * to be parsed and third argument lvl is log level for this message.
- */
-void init_slog(const char* fname, const char *conf, int lvl);
 
 
 /*
@@ -135,4 +129,5 @@ void slog(int level, int flag, const char *msg, ...);
 }
 #endif
 
-#endif
+
+#endif /* __SLOG_H__ */

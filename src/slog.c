@@ -70,22 +70,22 @@ void get_slog_date(SlogDate *sdate)
 }
 
 
-/*
- * Get library version. Function returns version and build number of slog
- * library. Return value is char pointer. Argument min is flag for output
- * format. If min is 0, function returns version in full  format, if flag
- * is 1 function returns only version number, For examle: 1.3.0
- */
+/* 
+ * Get library version. Function returns version and build number of slog 
+ * library. Return value is char pointer. Argument min is flag for output 
+ * format. If min is 1, function returns version in full  format, if flag 
+ * is 0 function returns only version numbers, For examle: 1.3.0
+-*/
 const char* slog_version(int min)
 {
     static char verstr[128];
 
     /* Version short */
-    if (min) sprintf(verstr, "%d.%d.%d",
+    if (min) sprintf(verstr, "%d.%d.%d", 
         SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD_NUM);
 
     /* Version long */
-    else sprintf(verstr, "%d.%d build %d (%s)",
+    else sprintf(verstr, "%d.%d build %d (%s)", 
         SLOGVERSION_MAX, SLOGVERSION_MIN, SLOGBUILD_NUM, __DATE__);
 
     return verstr;
@@ -107,14 +107,12 @@ const char* slog_version(int min)
  *  5 - Nagenta
  *  6 - Cyan
  *  7 - White
- *  8 - No Color (returns input string)
  */
-char* strclr(int clr, char* str, ...)
+char* strclr(int clr, char* str, ...) 
 {
     /* String buffers */
     static char output[MAXMSG];
     char string[MAXMSG];
-    char *colorstr, *resetstr;
 
     /* Read args */
     va_list args;
@@ -123,33 +121,37 @@ char* strclr(int clr, char* str, ...)
     va_end(args);
 
     /* Handle colors */
-    resetstr = CLR_RESET;
-    switch(clr)
+    switch(clr) 
     {
         case 0:
-            colorstr = CLR_NORM; break;
+            sprintf(output, "%s%s%s", CLR_NORM, string, CLR_RESET);
+            break;
         case 1:
-            colorstr = CLR_GREEN; break;
+            sprintf(output, "%s%s%s", CLR_GREEN, string, CLR_RESET);
+            break;
         case 2:
-            colorstr = CLR_RED; break;
+            sprintf(output, "%s%s%s", CLR_RED, string, CLR_RESET);
+            break;
         case 3:
-            colorstr = CLR_YELLOW; break;
+            sprintf(output, "%s%s%s", CLR_YELLOW, string, CLR_RESET);
+            break;
         case 4:
-            colorstr = CLR_BLUE; break;
+            sprintf(output, "%s%s%s", CLR_BLUE, string, CLR_RESET);
+            break;
         case 5:
-            colorstr = CLR_NAGENTA; break;
+            sprintf(output, "%s%s%s", CLR_NAGENTA, string, CLR_RESET);
+            break;
         case 6:
-            colorstr = CLR_CYAN; break;
+            sprintf(output, "%s%s%s", CLR_CYAN, string, CLR_RESET);
+            break;
         case 7:
-            colorstr = CLR_WHITE; break;
-        case 8:
-            colorstr = ""; resetstr = ""; break;
+            sprintf(output, "%s%s%s", CLR_WHITE, string, CLR_RESET);
+            break;
         default:
             return NULL;
     }
-    
+
     /* Return output */
-    snprintf(output, sizeof(output), "%s%s%s", colorstr, string, resetstr);
     return output;
 }
 
@@ -170,8 +172,7 @@ void log_to_file(char *out, const char *fname, SlogDate *sdate)
         snprintf(filename, sizeof(filename), "%s-%02d-%02d-%02d.log",
             fname, sdate->year, sdate->mon, sdate->day);
     }
-    else
-        snprintf(filename, sizeof(filename), "%s", fname);
+    else snprintf(filename, sizeof(filename), "%s.log", fname);
 
     /* Open file pointer */
     FILE *fp = fopen(filename, "a");
@@ -186,8 +187,8 @@ void log_to_file(char *out, const char *fname, SlogDate *sdate)
 
 
 /*
- * parse_config - Parse config file. Argument cfg_name is path
- * of config file name to be parsed. Function opens config file
+ * parse_config - Parse config file. Argument cfg_name is path 
+ * of config file name to be parsed. Function opens config file 
  * and parses LOGLEVEL and LOGTOFILE flags from it.
  */
 int parse_config(const char *cfg_name)
@@ -209,13 +210,13 @@ int parse_config(const char *cfg_name)
         /* Find level in file */
         if(strstr(line, "LOGLEVEL") != NULL)
         {
-            /* Get log level */
+            /* Get logtofile flag */
             slg.level = atoi(line+8);
             ret = 1;
         }
         else if(strstr(line, "LOGTOFILE") != NULL)
         {
-            /* Get log file enable/disable */
+            /* Get log level */
             slg.to_file = atoi(line+9);
             ret = 1;
         }
@@ -227,7 +228,7 @@ int parse_config(const char *cfg_name)
         }
         else if(strstr(line, "FILESTAMP") != NULL)
         {
-            /* Get log type */
+            /* Get filestamp */
             slg.filestamp = atoi(line+9);
             ret = 1;
         }
@@ -242,19 +243,19 @@ int parse_config(const char *cfg_name)
 
 
 /*
- * Retunr string in slog format. Function takes arguments
- * and returns string in slog format without printing and
+ * Retunr string in slog format. Function takes arguments 
+ * and returns string in slog format without printing and 
  * saveing in file. Return value is char pointer.
  */
-char* ret_slog(char *msg, ...)
+char* ret_slog(char *msg, ...) 
 {
     /* Used variables */
     static char output[MAXMSG];
     char string[MAXMSG];
-    SlogDate sdate;
+    SlogDate mdate;
 
     /* initialise system date */
-    get_slog_date(&sdate);
+    get_slog_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -263,9 +264,9 @@ char* ret_slog(char *msg, ...)
     va_end(args);
 
     /* Generate output string with date */
-    sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s",
-        sdate.year, sdate.mon, sdate.day, sdate.hour,
-        sdate.min, sdate.sec, string);
+    sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s", 
+        mdate.year, mdate.mon, mdate.day, mdate.hour, 
+        mdate.min, mdate.sec, string);
 
     /* Return output */
     return output;
@@ -281,15 +282,14 @@ char* ret_slog(char *msg, ...)
 void slog(int level, int flag, const char *msg, ...)
 {
     /* Used variables */
-    SlogDate sdate;
+    SlogDate mdate;
     char string[MAXMSG];
     char prints[MAXMSG];
+    char wfiles[MAXMSG];
     char *output;
-    char *tag;
-    int  color=0;
 
     /* Initialise system date */
-    get_slog_date(&sdate);
+    get_slog_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -298,39 +298,40 @@ void slog(int level, int flag, const char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if(level <= slg.level)
+    if(!level || level <= slg.level)
     {
         /* Handle flags */
         switch(flag) {
-            case SLOG_LIVE:
-                tag = "LIVE "; color = 8;
+            case 1:
+                sprintf(prints, "[LIVE]  %s", string);
+                strcpy(wfiles, prints);
                 break;
-            case SLOG_INFO:
-                tag = "INFO "; color = 1;
+            case 2:
+                sprintf(prints, "[%s]  %s", strclr(1, "INFO"), string);
+                sprintf(wfiles, "[INFO]  %s", string);
                 break;
-            case SLOG_WARN:
-                tag = "WARN "; color = 3;
+            case 3:
+                sprintf(prints, "[%s]  %s", strclr(3, "WARN"), string);
+                sprintf(wfiles, "[WARN]  %s", string);
                 break;
-            case SLOG_DEBUG:
-                tag = "DEBUG"; color = 4;
+            case 4:
+                sprintf(prints, "[%s] %s", strclr(4, "DEBUG"), string);
+                sprintf(wfiles, "[DEBUG] %s", string);
                 break;
-            case SLOG_ERROR:
-                tag = "ERROR"; color = 2;
+            case 5:
+                sprintf(prints, "[%s] %s", strclr(2, "ERROR"), string);
+                sprintf(wfiles, "[ERROR] %s", string);
                 break;
-            case SLOG_FATAL:
-                tag = "FATAL"; color = 2;
+            case 6:
+                sprintf(prints, "[%s] %s", strclr(2, "FATAL"), string);
+                sprintf(wfiles, "[FATAL] %s", string);
                 break;
-            case SLOG_NONE:
+            case 7:
+                sprintf(prints, "%s", string); strcpy(wfiles, prints);
+                break;
             default:
-                tag = ""; color = 2;
                 break;
         }
-
-        /* Get ready */
-        if (flag == SLOG_NONE)
-            snprintf(prints, sizeof(prints), "%s", string);
-        else 
-            snprintf(prints, sizeof(prints), "[%s] %s", strclr(color, tag), string);
 
         /* Print output */
         printf("%s", ret_slog("%s\n", prints));
@@ -338,27 +339,21 @@ void slog(int level, int flag, const char *msg, ...)
         /* Save log in file */
         if (slg.to_file)
         {
-            if (!slg.pretty) 
-            {
-                if (flag == SLOG_NONE)
-                    snprintf(prints, sizeof(prints), "%s", string);
-                else 
-                    snprintf(prints, sizeof(prints), "[%s] %s", tag, string);
-            }
-            output = ret_slog("%s\n", prints);
+            if (slg.pretty) output = ret_slog("%s\n", prints);
+            else output = ret_slog("%s\n", wfiles);
 
             /* Add log line to file */
-            log_to_file(output, slg.fname, &sdate);
+            log_to_file(output, slg.fname, &mdate);
         }
     }
 }
 
 
 /*
- * Initialize slog library. Function parses config file and reads log
- * level and save to file flag from config. First argument is file name
- * where log will be saved and second argument conf is config file path
- * to be parsed and third argument lvl is log level for this message.
+ * Initialize slog library. Function parses config file and reads log 
+ * level and save to file flag from config. First argument is file name 
+ * where log will be saved and second argument conf is config file path 
+ * to be parsedand third argument lvl is log level for this message.
  */
 void init_slog(const char* fname, const char* conf, int lvl)
 {
