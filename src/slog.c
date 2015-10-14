@@ -26,8 +26,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <errno.h>
 #include <time.h>
 #include "slog.h"
 
@@ -47,6 +49,91 @@
 
 /* Flags */
 static SlogFlags slg;
+static MutexSync slg_lock;
+
+/* 
+ * sync_init - Initialize mutex and set mutex attribute.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_init(MutexSync *m_sync) 
+{
+    /* Set flags */
+    m_sync->status_ok = 0;
+    m_sync->m_locked = 0;
+
+    /* Init mutex attribute */
+    if (pthread_mutexattr_init(&m_sync->m_attr) ||
+        pthread_mutexattr_settype(&m_sync->m_attr, PTHREAD_MUTEX_RECURSIVE) ||
+        pthread_mutex_init(&m_sync->mutex, &m_sync->m_attr) ||
+        pthread_mutexattr_destroy(&m_sync->m_attr))
+    {
+        slog(0, SLOG_ERROR, "Can not initialize mutex: %d", errno);
+        return;
+    }
+
+    m_sync->status_ok = 1;
+}
+
+
+/* 
+ * sync_destroy - Deitialize mutex and exit if error.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_destroy(MutexSync *m_sync)
+{
+    if (pthread_mutex_destroy(&m_sync->mutex))
+    {
+        slog(0, SLOG_ERROR, "Can not deinitialize mutex: %d", errno);
+        m_sync->status_ok = 0;
+        return;
+    }
+}
+
+
+/* 
+ * sync_lock - Lock mutex and and exit if error.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_lock(MutexSync *m_sync)
+{
+    if (m_sync->status_ok && !m_sync->m_locked) 
+    {
+        if (pthread_mutex_lock(&m_sync->mutex))
+        {
+            slog(0, SLOG_ERROR, "Can not lock mutex: %d", errno);
+            m_sync->status_ok = 0;
+            return;
+        }
+        m_sync->m_locked = 1;
+    }
+    else
+    {
+        slog(0, SLOG_WARN, "Locking bad mutex");
+    }
+}
+
+
+/* 
+ * sync_lock - Unlock mutex and and exit if error.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_unlock(MutexSync *m_sync)
+{
+    if (m_sync->status_ok && m_sync->m_locked) 
+    {
+        if (pthread_mutex_unlock(&m_sync->mutex))
+        {
+            slog(0, SLOG_ERROR, "Can not unlock mutex: %d", errno);
+            m_sync->status_ok = 0;
+            return;
+        }
+        m_sync->m_locked = 0;
+    }
+    else 
+    {
+        slog(0, SLOG_WARN, "Unlocking bad mutex");
+    }
+}
 
 
 /*
@@ -288,6 +375,9 @@ void slog(int level, int flag, const char *msg, ...)
     char wfiles[MAXMSG];
     char *output;
 
+    /* Lock for safe */
+    sync_lock(&slg_lock);
+
     /* Initialise system date */
     get_slog_date(&mdate);
 
@@ -327,6 +417,10 @@ void slog(int level, int flag, const char *msg, ...)
                 sprintf(wfiles, "[FATAL] %s", string);
                 break;
             case 7:
+                sprintf(prints, "[%s] %s", strclr(6, "PANIC"), string);
+                sprintf(wfiles, "[PANIC] %s", string);
+                break;
+            case 8:
                 sprintf(prints, "%s", string); strcpy(wfiles, prints);
                 break;
             default:
@@ -346,6 +440,9 @@ void slog(int level, int flag, const char *msg, ...)
             log_to_file(output, slg.fname, &mdate);
         }
     }
+
+    /* Done, unlock mutex */
+    sync_unlock(&slg_lock);
 }
 
 
@@ -371,6 +468,9 @@ void init_slog(const char* fname, const char* conf, int lvl)
         slg.fname = fname;
         status = parse_config(conf);
     }
+
+    /* Initialize locker */
+    sync_init(&slg_lock);
 
     /* Handle config parser status */
     if (!status) slog(0, SLOG_INFO, "Initializing logger values without config");

@@ -32,11 +32,12 @@
 extern "C" {
 #endif
 
+#include <pthread.h>
 
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    74
+#define SLOGBUILD_NUM    75
 
 
 /* Loging flags */
@@ -46,7 +47,8 @@ extern "C" {
 #define SLOG_DEBUG  4
 #define SLOG_ERROR  5
 #define SLOG_FATAL  6
-#define SLOG_NONE   7
+#define SLOG_PANIC  7
+#define SLOG_NONE   8
 
 
 /* Flags */
@@ -68,6 +70,43 @@ typedef struct {
     int min;
     int sec;
 } SlogDate;
+
+
+/* Mutex Sync variables */
+typedef struct {
+    pthread_mutexattr_t m_attr;
+    pthread_mutex_t mutex;
+    int status_ok;
+    int m_locked;
+} MutexSync;
+
+
+/* 
+ * sync_init - Initialize mutex and set mutex attribute.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_init(MutexSync *m_sync);
+
+
+/* 
+ * sync_destroy - Deitialize mutex and exit if error.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_destroy(MutexSync *m_sync);
+
+
+/* 
+ * sync_lock - Lock mutex and and exit if error.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_lock(MutexSync *m_sync);
+
+
+/* 
+ * sync_lock - Unlock mutex and and exit if error.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_unlock(MutexSync *m_sync);
 
 
 /* 

@@ -1,4 +1,4 @@
-LIB = -lslog
+LIB = -lslog -lpthread
 CFLAGS = -g -O2 -Wall
 
 example: example.c $(OBJ)
@@ -9,4 +9,4 @@ example.o: example.h
 .PHONY: clean
 
 clean:
-	$(RM) example $(OBJ)
+	$(RM) example *.log $(OBJ)
