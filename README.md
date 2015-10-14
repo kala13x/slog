@@ -1,5 +1,5 @@
-## slog Logging Library - 1.4 build 74
-Slog is simple logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
+## slog Logging Library - 1.4 build 75
+Slog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
 Installation is possible with makefile
