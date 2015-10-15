@@ -49,7 +49,15 @@
 
 /* Flags */
 static SlogFlags slg;
-static MutexSync slg_lock;
+static MutexSync *slock = NULL;
+
+
+/*
+ * slog_set_mutex - Initialize slog mutex variable.
+ * Argument lock is pointer of MutexSync structure.
+ */
+void slog_set_mutex(MutexSync *lock) { slock = lock; }
+
 
 /* 
  * sync_init - Initialize mutex and set mutex attribute.
@@ -67,7 +75,9 @@ void sync_init(MutexSync *m_sync)
         pthread_mutex_init(&m_sync->mutex, &m_sync->m_attr) ||
         pthread_mutexattr_destroy(&m_sync->m_attr))
     {
-        slog(0, SLOG_ERROR, "Can not initialize mutex: %d", errno);
+        printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
+            __FILE__, __LINE__, __FUNCTION__, errno);
+
         return;
     }
 
@@ -75,7 +85,7 @@ void sync_init(MutexSync *m_sync)
 }
 
 
-/* 
+/*
  * sync_destroy - Deitialize mutex and exit if error.
  * Argument m_sync is pointer of MutexSync structure.
  */
@@ -83,7 +93,9 @@ void sync_destroy(MutexSync *m_sync)
 {
     if (pthread_mutex_destroy(&m_sync->mutex))
     {
-        slog(0, SLOG_ERROR, "Can not deinitialize mutex: %d", errno);
+        printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %d\n", 
+            __FILE__, __LINE__, __FUNCTION__, errno);
+
         m_sync->status_ok = 0;
         return;
     }
@@ -96,19 +108,25 @@ void sync_destroy(MutexSync *m_sync)
  */
 void sync_lock(MutexSync *m_sync)
 {
-    if (m_sync->status_ok && !m_sync->m_locked) 
+    if (m_sync->status_ok) 
     {
-        if (pthread_mutex_lock(&m_sync->mutex))
+        if (!m_sync->m_locked) 
         {
-            slog(0, SLOG_ERROR, "Can not lock mutex: %d", errno);
-            m_sync->status_ok = 0;
-            return;
+            if (pthread_mutex_lock(&m_sync->mutex))
+            {
+                printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
+                    __FILE__, __LINE__, __FUNCTION__, errno);
+
+                m_sync->status_ok = 0;
+                return;
+            }
+            m_sync->m_locked = 1;
         }
-        m_sync->m_locked = 1;
     }
-    else
+    else 
     {
-        slog(0, SLOG_WARN, "Locking bad mutex");
+        printf("<%s:%d> %s: [WARN] Locking bad mutex\n", 
+            __FILE__, __LINE__, __FUNCTION__);
     }
 }
 
@@ -119,19 +137,25 @@ void sync_lock(MutexSync *m_sync)
  */
 void sync_unlock(MutexSync *m_sync)
 {
-    if (m_sync->status_ok && m_sync->m_locked) 
+    if (m_sync->status_ok) 
     {
-        if (pthread_mutex_unlock(&m_sync->mutex))
+        if (m_sync->m_locked)
         {
-            slog(0, SLOG_ERROR, "Can not unlock mutex: %d", errno);
-            m_sync->status_ok = 0;
-            return;
+            if (pthread_mutex_unlock(&m_sync->mutex))
+            {
+                printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
+                    __FILE__, __LINE__, __FUNCTION__, errno);
+                
+                m_sync->status_ok = 0;
+                return;
+            }
+            m_sync->m_locked = 0;
         }
-        m_sync->m_locked = 0;
     }
     else 
     {
-        slog(0, SLOG_WARN, "Unlocking bad mutex");
+        printf("<%s:%d> %s: [WARN] Unlocking bad mutex\n", 
+            __FILE__, __LINE__, __FUNCTION__);
     }
 }
 
@@ -376,7 +400,8 @@ void slog(int level, int flag, const char *msg, ...)
     char *output;
 
     /* Lock for safe */
-    sync_lock(&slg_lock);
+    if (slock != NULL && !slock->m_locked)
+        sync_lock(slock);
 
     /* Initialise system date */
     get_slog_date(&mdate);
@@ -442,7 +467,8 @@ void slog(int level, int flag, const char *msg, ...)
     }
 
     /* Done, unlock mutex */
-    sync_unlock(&slg_lock);
+    if (slock != NULL && slock->m_locked) 
+        sync_unlock(slock);
 }
 
 
@@ -468,9 +494,6 @@ void init_slog(const char* fname, const char* conf, int lvl)
         slg.fname = fname;
         status = parse_config(conf);
     }
-
-    /* Initialize locker */
-    sync_init(&slg_lock);
 
     /* Handle config parser status */
     if (!status) slog(0, SLOG_INFO, "Initializing logger values without config");

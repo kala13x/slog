@@ -37,7 +37,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    75
+#define SLOGBUILD_NUM    76
 
 
 /* Loging flags */
@@ -79,6 +79,13 @@ typedef struct {
     int status_ok;
     int m_locked;
 } MutexSync;
+
+
+/*
+ * slog_set_mutex - Initialize slog mutex variable.
+ * Argument lock is pointer of MutexSync structure.
+ */
+void slog_set_mutex(MutexSync *lock);
 
 
 /* 

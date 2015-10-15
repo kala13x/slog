@@ -1,4 +1,4 @@
-## slog Logging Library - 1.4 build 75
+## slog Logging Library - 1.4 build 76
 Slog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
@@ -20,6 +20,17 @@ At first you must initialise slog
 init_slog("filename", "slog.cfg", 3);
 ```
 Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level. If you will not initialize slog, it will only print messages with loglevel 0.
+
+
+### Thread safe
+If you want to use slog with thread safe mode, at first you must initialize MutexSync structure and then set structure pointer to the slog with slog_set_mutex(*) function.
+
+```
+MutexSync lock;
+sync_init(&lock);
+slog_set_mutex(&lock);
+```
+After that, slog will work with thread safe mode. Otherwise it will work on usual usafe mode for threads.
 
 ### Config file
 

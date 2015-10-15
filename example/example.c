@@ -9,6 +9,8 @@
 #include <string.h>
 #include <slog.h>
 
+static MutexSync lock;
+
 void greet() 
 {
     /* Get and print slog version */
@@ -29,6 +31,14 @@ int main()
 
 	/* Greet users */
 	greet();
+
+    /* 
+     * If you want to slog be thread safed, you must initialize 
+     * mutex and than set mutex variable to slog. If you dont.
+     * slog will work with not safe mode for threads.
+     */
+     sync_init(&lock);
+     slog_set_mutex(&lock);
 
     /* 
      * init_slog - Initialise slog 
