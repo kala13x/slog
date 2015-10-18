@@ -63,7 +63,7 @@ void slog_set_mutex(MutexSync *lock) { slock = lock; }
  * sync_init - Initialize mutex and set mutex attribute.
  * Argument m_sync is pointer of MutexSync structure.
  */
-void sync_init(MutexSync *m_sync) 
+void sync_init(MutexSync *m_sync)
 {
     /* Set flags */
     m_sync->status_ok = 0;
@@ -99,6 +99,20 @@ void sync_destroy(MutexSync *m_sync)
         m_sync->status_ok = 0;
         return;
     }
+    m_sync->status_ok = 1;
+}
+
+
+/* 
+ * sync_lock - Reinitialize mutex again and set status.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_reload(MutexSync *m_sync)
+{
+    sync_destroy(m_sync);
+
+    if(m_sync->status_ok) 
+        sync_init(m_sync);
 }
 
 
@@ -110,23 +124,24 @@ void sync_lock(MutexSync *m_sync)
 {
     if (m_sync->status_ok) 
     {
-        if (!m_sync->m_locked) 
+        if (pthread_mutex_lock(&m_sync->mutex))
         {
-            if (pthread_mutex_lock(&m_sync->mutex))
-            {
-                printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
-                    __FILE__, __LINE__, __FUNCTION__, errno);
+            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
+                __FILE__, __LINE__, __FUNCTION__, errno);
 
-                m_sync->status_ok = 0;
-                return;
-            }
-            m_sync->m_locked = 1;
+            m_sync->status_ok = 0;
+            return;
         }
+        m_sync->m_locked = 1;
     }
-    else 
+    else
     {
         printf("<%s:%d> %s: [WARN] Locking bad mutex\n", 
             __FILE__, __LINE__, __FUNCTION__);
+
+        /* Fix bad status */
+        if (errno == EAGAIN) m_sync->status_ok = 1;
+        else sync_reload(m_sync);
     }
 }
 
@@ -139,23 +154,23 @@ void sync_unlock(MutexSync *m_sync)
 {
     if (m_sync->status_ok) 
     {
-        if (m_sync->m_locked)
+        if (pthread_mutex_unlock(&m_sync->mutex))
         {
-            if (pthread_mutex_unlock(&m_sync->mutex))
-            {
-                printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
-                    __FILE__, __LINE__, __FUNCTION__, errno);
+            printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
+            __FILE__, __LINE__, __FUNCTION__, errno);
                 
-                m_sync->status_ok = 0;
-                return;
-            }
-            m_sync->m_locked = 0;
+            m_sync->status_ok = 0;
+            return;
         }
+        m_sync->m_locked = 0;
     }
     else 
     {
         printf("<%s:%d> %s: [WARN] Unlocking bad mutex\n", 
             __FILE__, __LINE__, __FUNCTION__);
+
+        /* Reset */
+        sync_reload(m_sync);
     }
 }
 
@@ -400,8 +415,7 @@ void slog(int level, int flag, const char *msg, ...)
     char *output;
 
     /* Lock for safe */
-    if (slock != NULL && !slock->m_locked)
-        sync_lock(slock);
+    if (slock != NULL) sync_lock(slock);
 
     /* Initialise system date */
     get_slog_date(&mdate);
@@ -467,8 +481,7 @@ void slog(int level, int flag, const char *msg, ...)
     }
 
     /* Done, unlock mutex */
-    if (slock != NULL && slock->m_locked) 
-        sync_unlock(slock);
+    if (slock != NULL) sync_unlock(slock);
 }
 
 
@@ -478,7 +491,7 @@ void slog(int level, int flag, const char *msg, ...)
  * where log will be saved and second argument conf is config file path 
  * to be parsedand third argument lvl is log level for this message.
  */
-void init_slog(const char* fname, const char* conf, int lvl)
+void init_slog(const char* fname, const char* conf, int lvl, MutexSync *lock)
 {
     int status = 0;
 
@@ -494,6 +507,9 @@ void init_slog(const char* fname, const char* conf, int lvl)
         slg.fname = fname;
         status = parse_config(conf);
     }
+
+    /* Set slog mutex */
+    if (lock != NULL) slock = lock;
 
     /* Handle config parser status */
     if (!status) slog(0, SLOG_INFO, "Initializing logger values without config");

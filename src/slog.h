@@ -37,7 +37,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    76
+#define SLOGBUILD_NUM    77
 
 
 /* Loging flags */
@@ -103,6 +103,13 @@ void sync_destroy(MutexSync *m_sync);
 
 
 /* 
+ * sync_lock - Reinitialize mutex again and set status.
+ * Argument m_sync is pointer of MutexSync structure.
+ */
+void sync_reload(MutexSync *m_sync);
+
+
+/* 
  * sync_lock - Lock mutex and and exit if error.
  * Argument m_sync is pointer of MutexSync structure.
  */
@@ -131,7 +138,7 @@ const char* slog_version(int min);
  * where log will be saved and second argument conf is config file path
  * to be parsed and third argument lvl is log level for this message.
  */
-void init_slog(const char* fname, const char *conf, int lvl);
+void init_slog(const char* fname, const char* conf, int lvl, MutexSync *lock);
 
 
 /*

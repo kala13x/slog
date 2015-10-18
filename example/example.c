@@ -45,8 +45,9 @@ int main()
      * First argument is log filename 
      * Second argument is config file
      * Third argument is max log level 
+     * Fouth argument is MutexSync srtucture pointer.
      */
-    init_slog("example", "slog.cfg", 3);
+    init_slog("example", "slog.cfg", 3, NULL);
 
     /* Log and print something with level 0 */
     slog(0, SLOG_LIVE, "Test message with level 0");
