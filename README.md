@@ -16,7 +16,7 @@ If you want to use slog in your C/C++ application, include slog.h header in your
 
 ### Simple API
 At first you must initialise slog
-```
+```c
 init_slog("filename", "slog.cfg", 3);
 ```
 Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level. If you will not initialize slog, it will only print messages with loglevel 0.
@@ -25,7 +25,7 @@ Function parses config file, reads log level and save to file flag from config. 
 ### Thread safe
 If you want to use slog with thread safe mode, at first you must initialize MutexSync structure and then set structure pointer to the slog with slog_set_mutex(*) function.
 
-```
+```c
 MutexSync lock;
 sync_init(&lock);
 slog_set_mutex(&lock);
@@ -72,7 +72,7 @@ Slog has its logging flags to print something with status code.
 
 ### Print and log something
 Here is an example how use slog.
-```
+```c
 slog(0, SLOG_LIVE, "Test message with level 0");
 ```
 First argument is log level, second argument is logging flag, and third is message to print and/or save. Slog ends strings automatically with new line character \n.
@@ -91,19 +91,19 @@ You can colorize strings with strclr function. Usage is very simple, first argum
 - 7 - White
 
 For example, if we want to print something with red color, code will be something like that:
-```
+```c
 char *ret = strclr(2, "Test string");
 slog(0, SLOG_NONE, "This is colorized string: %s", ret);
 ```
 
 ### Get date
 You can check and get system date with get_slog_date function. Argument is pointer of SlogDate structure. For example if you want to print system date which uses slog, code will be something like that:
-```
+```c
 SlogDate date;
 get_slog_date(&date);
 ```
 Values will be saved with 24h format at SlogDate structure members.
-```
+```c
 date.year;
 date.mon;
 date.day;
@@ -116,7 +116,7 @@ date.sec;
 slog_version() is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
 
 Usage:
-```
+```c
 slog(0, SLOG_NONE, "slog Version: %s", slog_version(0));
 ```
 Output will be something like that:
