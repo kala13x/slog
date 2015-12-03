@@ -1,4 +1,4 @@
-## slog Logging Library - 1.4 build 77
+## slog Logging Library - 1.4 build 80
 Slog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
@@ -17,20 +17,10 @@ If you want to use slog in your C/C++ application, include slog.h header in your
 ### Simple API
 At first you must initialise slog
 ```c
-init_slog("filename", "slog.cfg", 3);
+slog_init("filename", "slog.cfg", 3);
 ```
 Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level. If you will not initialize slog, it will only print messages with loglevel 0.
 
-
-### Thread safe
-If you want to use slog with thread safe mode, at first you must initialize MutexSync structure and then set structure pointer to the slog with slog_set_mutex(*) function.
-
-```c
-MutexSync lock;
-sync_init(&lock);
-slog_set_mutex(&lock);
-```
-After that, slog will work with thread safe mode. Otherwise it will work on usual usafe mode for threads.
 
 ### Config file
 
@@ -80,19 +70,20 @@ First argument is log level, second argument is logging flag, and third is messa
 ### Colorize output
 You can colorize strings with strclr function. Usage is very simple, first argument is color value and second argument is string which we want to colorize.
 
- Color values are:
-- 0 - Normal
-- 1 - Green
-- 2 - Red
-- 3 - Yellow
-- 4 - Blue
-- 5 - Nagenta
-- 6 - Cyan
-- 7 - White
+Color values are:
+CLR_NORMAL
+CLR_RED
+CLR_GREEN
+CLR_YELLOW
+CLR_BLUE
+CLR_NAGENTA
+CLR_CYAN
+CLR_WHITE
+CLR_RESET
 
 For example, if we want to print something with red color, code will be something like that:
 ```c
-char *ret = strclr(2, "Test string");
+char *ret = strclr(CLR_NAGENTA, "Test string");
 slog(0, SLOG_NONE, "This is colorized string: %s", ret);
 ```
 
@@ -100,7 +91,7 @@ slog(0, SLOG_NONE, "This is colorized string: %s", ret);
 You can check and get system date with get_slog_date function. Argument is pointer of SlogDate structure. For example if you want to print system date which uses slog, code will be something like that:
 ```c
 SlogDate date;
-get_slog_date(&date);
+slog_get_date(&date);
 ```
 Values will be saved with 24h format at SlogDate structure members.
 ```c

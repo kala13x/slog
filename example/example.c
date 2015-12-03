@@ -9,8 +9,6 @@
 #include <string.h>
 #include <slog.h>
 
-static MutexSync lock;
-
 void greet() 
 {
     /* Get and print slog version */
@@ -29,25 +27,17 @@ int main()
     strcpy(char_arg, "test string");
     int_arg = 69;
 
-	/* Greet users */
-	greet();
+    /* Greet users */
+    greet();
 
     /* 
-     * If you want to slog be thread safed, you must initialize 
-     * mutex and than set mutex variable to slog. If you dont.
-     * slog will work with not safe mode for threads.
-     */
-     sync_init(&lock);
-     slog_set_mutex(&lock);
-
-    /* 
-     * init_slog - Initialise slog 
+     * slog_init - Initialise slog 
      * First argument is log filename 
      * Second argument is config file
      * Third argument is max log level 
-     * Fouth argument is MutexSync srtucture pointer.
+     * Fouth is thread safe flag.
      */
-    init_slog("example", "slog.cfg", 3, NULL);
+    slog_init("example", "slog.cfg", 3, 1);
 
     /* Log and print something with level 0 */
     slog(0, SLOG_LIVE, "Test message with level 0");
@@ -72,7 +62,7 @@ int main()
     slog(4, SLOG_NONE, "[LIVE] Test log with higher level than log max value");
 
     /* Print something with our own colorized line */
-    slog(0, SLOG_NONE, "[%s]  This is our own colorized string", strclr(6, "TEST"));
+    slog(0, SLOG_NONE, "[%s] This is our own colorized string", strclr(CLR_GREEN, "TEST"));
 
     return 0;
 }

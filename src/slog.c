@@ -33,153 +33,20 @@
 #include <time.h>
 #include "slog.h"
 
-/* Supported colors */
-#define CLR_NORM     "\x1B[0m"
-#define CLR_RED      "\x1B[31m"
-#define CLR_GREEN    "\x1B[32m"
-#define CLR_YELLOW   "\x1B[33m"
-#define CLR_BLUE     "\x1B[34m"
-#define CLR_NAGENTA  "\x1B[35m"
-#define CLR_CYAN     "\x1B[36m"
-#define CLR_WHITE    "\x1B[37m"
-#define CLR_RESET    "\033[0m"
 
 /* Max size of string */
 #define MAXMSG 8196
 
 /* Flags */
 static SlogFlags slg;
-static MutexSync *slock = NULL;
+static pthread_mutex_t slog_mutex;
 
 
 /*
- * slog_set_mutex - Initialize slog mutex variable.
- * Argument lock is pointer of MutexSync structure.
- */
-void slog_set_mutex(MutexSync *lock) { slock = lock; }
-
-
-/* 
- * sync_init - Initialize mutex and set mutex attribute.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_init(MutexSync *m_sync)
-{
-    /* Set flags */
-    m_sync->status_ok = 0;
-    m_sync->m_locked = 0;
-
-    /* Init mutex attribute */
-    if (pthread_mutexattr_init(&m_sync->m_attr) ||
-        pthread_mutexattr_settype(&m_sync->m_attr, PTHREAD_MUTEX_RECURSIVE) ||
-        pthread_mutex_init(&m_sync->mutex, &m_sync->m_attr) ||
-        pthread_mutexattr_destroy(&m_sync->m_attr))
-    {
-        printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
-            __FILE__, __LINE__, __FUNCTION__, errno);
-
-        return;
-    }
-
-    m_sync->status_ok = 1;
-}
-
-
-/*
- * sync_destroy - Deitialize mutex and exit if error.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_destroy(MutexSync *m_sync)
-{
-    if (pthread_mutex_destroy(&m_sync->mutex))
-    {
-        printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %d\n", 
-            __FILE__, __LINE__, __FUNCTION__, errno);
-
-        m_sync->status_ok = 0;
-        return;
-    }
-    m_sync->status_ok = 1;
-}
-
-
-/* 
- * sync_lock - Reinitialize mutex again and set status.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_reload(MutexSync *m_sync)
-{
-    sync_destroy(m_sync);
-
-    if(m_sync->status_ok) 
-        sync_init(m_sync);
-}
-
-
-/* 
- * sync_lock - Lock mutex and and exit if error.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_lock(MutexSync *m_sync)
-{
-    if (m_sync->status_ok) 
-    {
-        if (pthread_mutex_lock(&m_sync->mutex))
-        {
-            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
-                __FILE__, __LINE__, __FUNCTION__, errno);
-
-            m_sync->status_ok = 0;
-            return;
-        }
-        m_sync->m_locked = 1;
-    }
-    else
-    {
-        printf("<%s:%d> %s: [WARN] Locking bad mutex\n", 
-            __FILE__, __LINE__, __FUNCTION__);
-
-        /* Fix bad status */
-        if (errno == EAGAIN) m_sync->status_ok = 1;
-        else sync_reload(m_sync);
-    }
-}
-
-
-/* 
- * sync_lock - Unlock mutex and and exit if error.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_unlock(MutexSync *m_sync)
-{
-    if (m_sync->status_ok) 
-    {
-        if (pthread_mutex_unlock(&m_sync->mutex))
-        {
-            printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
-            __FILE__, __LINE__, __FUNCTION__, errno);
-                
-            m_sync->status_ok = 0;
-            return;
-        }
-        m_sync->m_locked = 0;
-    }
-    else 
-    {
-        printf("<%s:%d> %s: [WARN] Unlocking bad mutex\n", 
-            __FILE__, __LINE__, __FUNCTION__);
-
-        /* Reset */
-        sync_reload(m_sync);
-    }
-}
-
-
-/*
- * get_slog_date - Intialize date with system date.
+ * slog_get_date - Intialize date with system date.
  * Argument is pointer of SlogDate structure.
  */
-void get_slog_date(SlogDate *sdate)
+void slog_get_date(SlogDate *sdate)
 {
     time_t rawtime;
     struct tm *timeinfo;
@@ -219,22 +86,12 @@ const char* slog_version(int min)
 
 
 /*
- * strclr - Colorize string. Function takes color value and string
- * and returns colorized string as char pointer. First argument clr
- * is color value (if it is invalid, function retunrs NULL) and second
+ * strclr - Colorize string. Function takes color value and string 
+ * and returns colorized string as char pointer. First argument clr 
+ * is color value (if it is invalid, function retunrs NULL) and second 
  * is string with va_list of arguments which one we want to colorize.
- * 
- * Color values are:
- *  0 - Normal
- *  1 - Green
- *  2 - Red
- *  3 - Yellow
- *  4 - Blue
- *  5 - Nagenta
- *  6 - Cyan
- *  7 - White
  */
-char* strclr(int clr, char* str, ...) 
+char* strclr(const char* clr, char* str, ...) 
 {
     /* String buffers */
     static char output[MAXMSG];
@@ -246,38 +103,9 @@ char* strclr(int clr, char* str, ...)
     vsprintf(string, str, args);
     va_end(args);
 
-    /* Handle colors */
-    switch(clr) 
-    {
-        case 0:
-            sprintf(output, "%s%s%s", CLR_NORM, string, CLR_RESET);
-            break;
-        case 1:
-            sprintf(output, "%s%s%s", CLR_GREEN, string, CLR_RESET);
-            break;
-        case 2:
-            sprintf(output, "%s%s%s", CLR_RED, string, CLR_RESET);
-            break;
-        case 3:
-            sprintf(output, "%s%s%s", CLR_YELLOW, string, CLR_RESET);
-            break;
-        case 4:
-            sprintf(output, "%s%s%s", CLR_BLUE, string, CLR_RESET);
-            break;
-        case 5:
-            sprintf(output, "%s%s%s", CLR_NAGENTA, string, CLR_RESET);
-            break;
-        case 6:
-            sprintf(output, "%s%s%s", CLR_CYAN, string, CLR_RESET);
-            break;
-        case 7:
-            sprintf(output, "%s%s%s", CLR_WHITE, string, CLR_RESET);
-            break;
-        default:
-            return NULL;
-    }
+    /* Colorize string */
+    sprintf(output, "%s%s%s", clr, string, CLR_RESET);
 
-    /* Return output */
     return output;
 }
 
@@ -287,7 +115,7 @@ char* strclr(int clr, char* str, ...)
  * we want to log. Argument fname is log file path and sdate is
  * SlogDate structure variable, we need it to create filename.
  */
-void log_to_file(char *out, const char *fname, SlogDate *sdate)
+void slog_to_file(char *out, const char *fname, SlogDate *sdate)
 {
     /* Used variables */
     char filename[PATH_MAX];
@@ -373,7 +201,7 @@ int parse_config(const char *cfg_name)
  * and returns string in slog format without printing and 
  * saveing in file. Return value is char pointer.
  */
-char* ret_slog(char *msg, ...) 
+char* slog_get(char *msg, ...) 
 {
     /* Used variables */
     static char output[MAXMSG];
@@ -381,7 +209,7 @@ char* ret_slog(char *msg, ...)
     SlogDate mdate;
 
     /* initialise system date */
-    get_slog_date(&mdate);
+    slog_get_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -407,18 +235,26 @@ char* ret_slog(char *msg, ...)
  */
 void slog(int level, int flag, const char *msg, ...)
 {
+    /* Lock for safe */
+    if (slg.td_safe) 
+    {
+        if (pthread_mutex_lock(&slog_mutex))
+        {
+            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
+                __FILE__, __LINE__, __FUNCTION__, errno);
+            exit(EXIT_FAILURE);
+        }
+    }
+
     /* Used variables */
     SlogDate mdate;
     char string[MAXMSG];
     char prints[MAXMSG];
-    char wfiles[MAXMSG];
+    char color[32], alarm[32];
     char *output;
 
-    /* Lock for safe */
-    if (slock != NULL) sync_lock(slock);
-
     /* Initialise system date */
-    get_slog_date(&mdate);
+    slog_get_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -431,57 +267,70 @@ void slog(int level, int flag, const char *msg, ...)
     {
         /* Handle flags */
         switch(flag) {
-            case 1:
-                sprintf(prints, "[LIVE]  %s", string);
-                strcpy(wfiles, prints);
+            case SLOG_LIVE:
+                strncpy(color, CLR_NORMAL, sizeof(color));
+                strncpy(alarm, "LIVE", sizeof(alarm));
                 break;
-            case 2:
-                sprintf(prints, "[%s]  %s", strclr(1, "INFO"), string);
-                sprintf(wfiles, "[INFO]  %s", string);
+            case SLOG_INFO:
+                strncpy(color, CLR_GREEN, sizeof(color));
+                strncpy(alarm, "INFO", sizeof(alarm));
                 break;
-            case 3:
-                sprintf(prints, "[%s]  %s", strclr(3, "WARN"), string);
-                sprintf(wfiles, "[WARN]  %s", string);
+            case SLOG_WARN:
+                strncpy(color, CLR_YELLOW, sizeof(color));
+                strncpy(alarm, "WARN", sizeof(alarm));
                 break;
-            case 4:
-                sprintf(prints, "[%s] %s", strclr(4, "DEBUG"), string);
-                sprintf(wfiles, "[DEBUG] %s", string);
+            case SLOG_DEBUG:
+                strncpy(color, CLR_BLUE, sizeof(color));
+                strncpy(alarm, "DEBUG", sizeof(alarm));
                 break;
-            case 5:
-                sprintf(prints, "[%s] %s", strclr(2, "ERROR"), string);
-                sprintf(wfiles, "[ERROR] %s", string);
+            case SLOG_ERROR:
+                strncpy(color, CLR_RED, sizeof(color));
+                strncpy(alarm, "ERROR", sizeof(alarm));
                 break;
-            case 6:
-                sprintf(prints, "[%s] %s", strclr(2, "FATAL"), string);
-                sprintf(wfiles, "[FATAL] %s", string);
+            case SLOG_FATAL:
+                strncpy(color, CLR_RED, sizeof(color));
+                strncpy(alarm, "FATAL", sizeof(alarm));
                 break;
-            case 7:
-                sprintf(prints, "[%s] %s", strclr(6, "PANIC"), string);
-                sprintf(wfiles, "[PANIC] %s", string);
+            case SLOG_PANIC:
+                strncpy(color, CLR_WHITE, sizeof(color));
+                strncpy(alarm, "PANIC", sizeof(alarm));
                 break;
-            case 8:
-                sprintf(prints, "%s", string); strcpy(wfiles, prints);
+            case SLOG_NONE:
+                strncpy(prints, string, sizeof(string));
                 break;
             default:
-                break;
+                return;
         }
 
         /* Print output */
-        printf("%s", ret_slog("%s\n", prints));
+        if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", strclr(color, alarm), string);
+        printf("%s", slog_get("%s\n", prints));
 
         /* Save log in file */
         if (slg.to_file)
         {
-            if (slg.pretty) output = ret_slog("%s\n", prints);
-            else output = ret_slog("%s\n", wfiles);
+            if (slg.pretty) output = slog_get("%s", prints);
+            else 
+            {
+                if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", alarm, string);
+                output = slog_get("%s", prints);
+            } 
 
             /* Add log line to file */
-            log_to_file(output, slg.fname, &mdate);
+            slog_to_file(output, slg.fname, &mdate);
         }
     }
 
     /* Done, unlock mutex */
-    if (slock != NULL) sync_unlock(slock);
+    if (slg.td_safe) 
+    {
+        if (pthread_mutex_unlock(&slog_mutex)) 
+        {
+            printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %d\n", 
+                __FILE__, __LINE__, __FUNCTION__, errno);
+            exit(EXIT_FAILURE);
+        }
+    }
 }
 
 
@@ -491,7 +340,7 @@ void slog(int level, int flag, const char *msg, ...)
  * where log will be saved and second argument conf is config file path 
  * to be parsedand third argument lvl is log level for this message.
  */
-void init_slog(const char* fname, const char* conf, int lvl, MutexSync *lock)
+void slog_init(const char* fname, const char* conf, int lvl, int t_safe)
 {
     int status = 0;
 
@@ -500,6 +349,23 @@ void init_slog(const char* fname, const char* conf, int lvl, MutexSync *lock)
     slg.to_file = 0;
     slg.pretty = 0;
     slg.filestamp = 1;
+    slg.td_safe = t_safe;
+
+    /* Init mutex sync */
+    if (t_safe) 
+    {
+        /* Init mutex attribute */
+        pthread_mutexattr_t m_attr;
+        if (pthread_mutexattr_init(&m_attr) ||
+            pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE) ||
+            pthread_mutex_init(&slog_mutex, &m_attr) ||
+            pthread_mutexattr_destroy(&m_attr))
+        {
+            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
+                __FILE__, __LINE__, __FUNCTION__, errno);
+            slg.td_safe = 0;
+        }
+    }
 
     /* Parse config file */
     if (conf != NULL) 
@@ -507,9 +373,6 @@ void init_slog(const char* fname, const char* conf, int lvl, MutexSync *lock)
         slg.fname = fname;
         status = parse_config(conf);
     }
-
-    /* Set slog mutex */
-    if (lock != NULL) slock = lock;
 
     /* Handle config parser status */
     if (!status) slog(0, SLOG_INFO, "Initializing logger values without config");

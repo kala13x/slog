@@ -37,10 +37,11 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    77
+#define SLOGBUILD_NUM    80
 
 
 /* Loging flags */
+#define SLOG_NONE   0
 #define SLOG_LIVE   1
 #define SLOG_INFO   2
 #define SLOG_WARN   3
@@ -48,7 +49,18 @@ extern "C" {
 #define SLOG_ERROR  5
 #define SLOG_FATAL  6
 #define SLOG_PANIC  7
-#define SLOG_NONE   8
+
+
+/* Supported colors */
+#define CLR_NORMAL   "\x1B[0m"
+#define CLR_RED      "\x1B[31m"
+#define CLR_GREEN    "\x1B[32m"
+#define CLR_YELLOW   "\x1B[33m"
+#define CLR_BLUE     "\x1B[34m"
+#define CLR_NAGENTA  "\x1B[35m"
+#define CLR_CYAN     "\x1B[36m"
+#define CLR_WHITE    "\x1B[37m"
+#define CLR_RESET    "\033[0m"
 
 
 /* Flags */
@@ -58,6 +70,7 @@ typedef struct {
     short to_file;
     short pretty;
     short filestamp;
+    short td_safe;
 } SlogFlags;
 
 
@@ -72,57 +85,6 @@ typedef struct {
 } SlogDate;
 
 
-/* Mutex Sync variables */
-typedef struct {
-    pthread_mutexattr_t m_attr;
-    pthread_mutex_t mutex;
-    int status_ok;
-    int m_locked;
-} MutexSync;
-
-
-/*
- * slog_set_mutex - Initialize slog mutex variable.
- * Argument lock is pointer of MutexSync structure.
- */
-void slog_set_mutex(MutexSync *lock);
-
-
-/* 
- * sync_init - Initialize mutex and set mutex attribute.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_init(MutexSync *m_sync);
-
-
-/* 
- * sync_destroy - Deitialize mutex and exit if error.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_destroy(MutexSync *m_sync);
-
-
-/* 
- * sync_lock - Reinitialize mutex again and set status.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_reload(MutexSync *m_sync);
-
-
-/* 
- * sync_lock - Lock mutex and and exit if error.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_lock(MutexSync *m_sync);
-
-
-/* 
- * sync_lock - Unlock mutex and and exit if error.
- * Argument m_sync is pointer of MutexSync structure.
- */
-void sync_unlock(MutexSync *m_sync);
-
-
 /* 
  * Get library version. Function returns version and build number of slog 
  * library. Return value is char pointer. Argument min is flag for output 
@@ -133,31 +95,12 @@ const char* slog_version(int min);
 
 
 /*
- * Initialize slog library. Function parses config file and reads log
- * level and save to file flag from config. First argument is file name
- * where log will be saved and second argument conf is config file path
- * to be parsed and third argument lvl is log level for this message.
- */
-void init_slog(const char* fname, const char* conf, int lvl, MutexSync *lock);
-
-
-/*
- * strclr - Colorize string. Function takes color value and string
- * and returns colorized string as char pointer. First argument clr
- * is color value (if it is invalid, function retunrs NULL) and second
+ * strclr - Colorize string. Function takes color value and string 
+ * and returns colorized string as char pointer. First argument clr 
+ * is color value (if it is invalid, function retunrs NULL) and second 
  * is string with va_list of arguments which one we want to colorize.
- * 
- * Color values are:
- *  0 - Normal
- *  1 - Green
- *  2 - Red
- *  3 - Yellow
- *  4 - Blue
- *  5 - Nagenta
- *  6 - Cyan
- *  7 - White
  */
-char* strclr(int clr, char* str, ...);
+char* strclr(const char* clr, char* str, ...);
 
 
 /*
@@ -165,7 +108,7 @@ char* strclr(int clr, char* str, ...);
  * and returns string in slog format without printing and
  * saveing in file. Return value is char pointer.
  */
-char* ret_slog(char *msg, ...);
+char* slog_ret(char *msg, ...);
 
 
 /*
@@ -175,6 +118,15 @@ char* ret_slog(char *msg, ...);
  * logging level and flag is slog flags defined in slog.h header.
  */
 void slog(int level, int flag, const char *msg, ...);
+
+
+/*
+ * Initialize slog library. Function parses config file and reads log
+ * level and save to file flag from config. First argument is file name
+ * where log will be saved and second argument conf is config file path
+ * to be parsed and third argument lvl is log level for this message.
+ */
+void slog_init(const char* fname, const char* conf, int lvl, int t_safe);
 
 
 /* For include header in CPP code */
