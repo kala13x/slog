@@ -37,7 +37,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    80
+#define SLOGBUILD_NUM    81
 
 
 /* Loging flags */
@@ -66,6 +66,7 @@ extern "C" {
 /* Flags */
 typedef struct {
     const char* fname;
+    short file_level;
     short level;
     short to_file;
     short pretty;
@@ -126,7 +127,7 @@ void slog(int level, int flag, const char *msg, ...);
  * where log will be saved and second argument conf is config file path
  * to be parsed and third argument lvl is log level for this message.
  */
-void slog_init(const char* fname, const char* conf, int lvl, int t_safe);
+void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_safe);
 
 
 /* For include header in CPP code */

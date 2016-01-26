@@ -1,4 +1,4 @@
-## slog Logging Library - 1.4 build 80
+## slog Logging Library - 1.4 build 81
 Slog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
@@ -17,9 +17,9 @@ If you want to use slog in your C/C++ application, include slog.h header in your
 ### Simple API
 At first you must initialise slog
 ```c
-slog_init("filename", "slog.cfg", 3);
+slog_init("filename", "slog.cfg", 1, 3, 1);
 ```
-Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved and second argument conf is config file path to be parsedand. Third argument is log level. If you will not initialize slog, it will only print messages with loglevel 0.
+Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved. Second argument conf is config file path to be parsedand. Third argument is log level, if you will not initialize slog, it will only print messages with loglevel 0. Fourth Afgument is log to file level and fifth argument is thread safety flag (1 enabled, 0 disabled).
 
 
 ### Config file
@@ -28,10 +28,11 @@ Log level and log to file flags can be parsed from config file.
 
 Example of config file:
 ```
-LOGLEVEL 3
+LOGLEVEL 1
 LOGTOFILE 1
 PRETTYLOG 0
 FILESTAMP 1
+LOGFILELEVEL 3
 ```
 First value is log level to control which levels should printed.
 
@@ -46,6 +47,8 @@ If flag is 1, logs will be saved in file, otherwise it wont.
 Third value is pretty log, if this flag is enabled, slog will save colored strings in file, otherwise it wont.
 
 Fourth value is log file timstamp. If this flag is enabled, the log filename provided will have a datestamp and ".log" appended to it for each write. Otherwise log filename will always be the same as provided to init_slog().
+
+Fifth value is log to file level.
 
 ### Logging flags
 Slog has its logging flags to print something with status code.

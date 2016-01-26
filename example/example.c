@@ -37,7 +37,7 @@ int main()
      * Third argument is max log level 
      * Fouth is thread safe flag.
      */
-    slog_init("example", "slog.cfg", 3, 1);
+    slog_init("example", "slog.cfg", 2, 3, 1);
 
     /* Log and print something with level 0 */
     slog(0, SLOG_LIVE, "Test message with level 0");

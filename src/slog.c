@@ -168,6 +168,12 @@ int parse_config(const char *cfg_name)
             slg.level = atoi(line+8);
             ret = 1;
         }
+        if(strstr(line, "LOGFILELEVEL") != NULL)
+        {
+            /* Get logtofile flag */
+            slg.file_level = atoi(line+12);
+            ret = 1;
+        }
         else if(strstr(line, "LOGTOFILE") != NULL)
         {
             /* Get log level */
@@ -263,10 +269,11 @@ void slog(int level, int flag, const char *msg, ...)
     va_end(args);
 
     /* Check logging levels */
-    if(!level || level <= slg.level)
+    if(!level || level <= slg.level || level <= slg.file_level)
     {
         /* Handle flags */
-        switch(flag) {
+        switch(flag) 
+        {
             case SLOG_LIVE:
                 strncpy(color, CLR_NORMAL, sizeof(color));
                 strncpy(alarm, "LIVE", sizeof(alarm));
@@ -303,17 +310,20 @@ void slog(int level, int flag, const char *msg, ...)
         }
 
         /* Print output */
-        if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", strclr(color, alarm), string);
-        printf("%s", slog_get("%s\n", prints));
+        if (level <= slg.level)
+        {
+            if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", strclr(color, alarm), string);
+            printf("%s", slog_get("%s\n", prints));
+        }
 
         /* Save log in file */
-        if (slg.to_file)
+        if (slg.to_file && level <= slg.file_level)
         {
-            if (slg.pretty) output = slog_get("%s", prints);
+            if (slg.pretty) output = slog_get("%s\n", prints);
             else 
             {
                 if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", alarm, string);
-                output = slog_get("%s", prints);
+                output = slog_get("%s\n", prints);
             } 
 
             /* Add log line to file */
@@ -340,19 +350,20 @@ void slog(int level, int flag, const char *msg, ...)
  * where log will be saved and second argument conf is config file path 
  * to be parsedand third argument lvl is log level for this message.
  */
-void slog_init(const char* fname, const char* conf, int lvl, int t_safe)
+void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_safe)
 {
     int status = 0;
 
     /* Set up default values */
     slg.level = lvl;
+    slg.file_level = flvl;
     slg.to_file = 0;
     slg.pretty = 0;
     slg.filestamp = 1;
     slg.td_safe = t_safe;
 
     /* Init mutex sync */
-    if (t_safe) 
+    if (t_safe)
     {
         /* Init mutex attribute */
         pthread_mutexattr_t m_attr;
