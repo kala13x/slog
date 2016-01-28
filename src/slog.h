@@ -37,7 +37,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    81
+#define SLOGBUILD_NUM    82
 
 
 /* Loging flags */
@@ -83,6 +83,7 @@ typedef struct {
     int hour;
     int min;
     int sec;
+    int usec;
 } SlogDate;
 
 
@@ -109,7 +110,7 @@ char* strclr(const char* clr, char* str, ...);
  * and returns string in slog format without printing and
  * saveing in file. Return value is char pointer.
  */
-char* slog_ret(char *msg, ...);
+char* slog_get(SlogDate *pDate, char *msg, ...);
 
 
 /*

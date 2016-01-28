@@ -1,4 +1,5 @@
 CFLAGS = -g -O2 -Wall -lpthread
+LIB = -lrt
 OBJS = slog.o
 
 LIBINSTALL = /usr/local/lib

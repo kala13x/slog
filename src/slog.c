@@ -49,17 +49,22 @@ static pthread_mutex_t slog_mutex;
 void slog_get_date(SlogDate *sdate)
 {
     time_t rawtime;
-    struct tm *timeinfo;
+    struct tm timeinfo;
+    struct timespec now;
     rawtime = time(NULL);
-    timeinfo = localtime(&rawtime);
+    localtime_r(&rawtime, &timeinfo);
 
     /* Get System Date */
-    sdate->year = timeinfo->tm_year+1900;
-    sdate->mon = timeinfo->tm_mon+1;
-    sdate->day = timeinfo->tm_mday;
-    sdate->hour = timeinfo->tm_hour;
-    sdate->min = timeinfo->tm_min;
-    sdate->sec = timeinfo->tm_sec;
+    sdate->year = timeinfo.tm_year+1900;
+    sdate->mon = timeinfo.tm_mon+1;
+    sdate->day = timeinfo.tm_mday;
+    sdate->hour = timeinfo.tm_hour;
+    sdate->min = timeinfo.tm_min;
+    sdate->sec = timeinfo.tm_sec;
+
+    /* Get micro seconds */
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    sdate->usec = now.tv_nsec / 10000000;
 }
 
 
@@ -207,15 +212,11 @@ int parse_config(const char *cfg_name)
  * and returns string in slog format without printing and 
  * saveing in file. Return value is char pointer.
  */
-char* slog_get(char *msg, ...) 
+char* slog_get(SlogDate *pDate, char *msg, ...) 
 {
     /* Used variables */
     static char output[MAXMSG];
     char string[MAXMSG];
-    SlogDate mdate;
-
-    /* initialise system date */
-    slog_get_date(&mdate);
 
     /* Read args */
     va_list args;
@@ -224,9 +225,9 @@ char* slog_get(char *msg, ...)
     va_end(args);
 
     /* Generate output string with date */
-    sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d - %s", 
-        mdate.year, mdate.mon, mdate.day, mdate.hour, 
-        mdate.min, mdate.sec, string);
+    sprintf(output, "%02d.%02d.%02d-%02d:%02d:%02d.%02d - %s", 
+        pDate->year, pDate->mon, pDate->day, pDate->hour, 
+        pDate->min, pDate->sec, pDate->usec, string);
 
     /* Return output */
     return output;
@@ -259,8 +260,11 @@ void slog(int level, int flag, const char *msg, ...)
     char color[32], alarm[32];
     char *output;
 
-    /* Initialise system date */
     slog_get_date(&mdate);
+    bzero(string, sizeof(string));
+    bzero(prints, sizeof(prints));
+    bzero(color, sizeof(color));
+    bzero(alarm, sizeof(alarm));
 
     /* Read args */
     va_list args;
@@ -306,24 +310,26 @@ void slog(int level, int flag, const char *msg, ...)
                 strncpy(prints, string, sizeof(string));
                 break;
             default:
-                return;
+                strncpy(prints, string, sizeof(string));
+                flag = SLOG_NONE;
+                break;
         }
 
         /* Print output */
-        if (level <= slg.level)
+        if (level <= slg.level || slg.pretty)
         {
             if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", strclr(color, alarm), string);
-            printf("%s", slog_get("%s\n", prints));
+            if (level <= slg.level) printf("%s", slog_get(&mdate, "%s\n", prints));
         }
 
         /* Save log in file */
         if (slg.to_file && level <= slg.file_level)
         {
-            if (slg.pretty) output = slog_get("%s\n", prints);
+            if (slg.pretty) output = slog_get(&mdate, "%s\n", prints);
             else 
             {
                 if (flag != SLOG_NONE) sprintf(prints, "[%s] %s", alarm, string);
-                output = slog_get("%s\n", prints);
+                output = slog_get(&mdate, "%s\n", prints);
             } 
 
             /* Add log line to file */

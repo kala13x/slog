@@ -1,8 +1,0 @@
-2016.01.26-18:30:28 - [INFO] Loading logger config from: slog.cfg
-2016.01.26-18:30:28 - [LIVE] Test message with level 0
-2016.01.26-18:30:28 - [WARN] Warn message with level 1
-2016.01.26-18:30:28 - [INFO] Info message with level 2
-2016.01.26-18:30:28 - [LIVE] Test message with level 3
-2016.01.26-18:30:28 - [DEBUG] Debug message with char argument: test string
-2016.01.26-18:30:28 - [ERROR] Error message with int argument: 69
-2016.01.26-18:30:28 - [[32mTEST[0m] This is our own colorized string

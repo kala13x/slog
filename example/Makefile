@@ -1,4 +1,4 @@
-LIB = -lslog -lpthread
+LIB = -lslog -lpthread -lrt
 CFLAGS = -g -O2 -Wall
 
 example: example.c $(OBJ)
