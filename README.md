@@ -10,6 +10,11 @@ make
 sudo make install
 ```
 
+On Darwin/Apple Platform compile with
+```
+make -f Makefile.darwin
+```
+
 ### Usage
 If you want to use slog in your C/C++ application, include slog.h header in your source file and link slog library with -lslog linker flag while compiling your project. See examples in example.c and Makefile.
 
