@@ -37,8 +37,12 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAX  1
 #define SLOGVERSION_MIN  4
-#define SLOGBUILD_NUM    82
+#define SLOGBUILD_NUM    83
 
+#ifdef DARWIN
+#define    CLOCK_REALTIME    0x2d4e1588
+#define    CLOCK_MONOTONIC   0x0
+#endif //DARWIN
 
 /* Loging flags */
 #define SLOG_NONE   0
