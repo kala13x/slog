@@ -24,12 +24,15 @@ At first you must initialise slog
 ```c
 slog_init("filename", "slog.cfg", 1, 3, 1);
 ```
-Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved. Second argument conf is config file path to be parsedand. Third argument is log level, if you will not initialize slog, it will only print messages with loglevel 0. Fourth Afgument is log to file level and fifth argument is thread safety flag (1 enabled, 0 disabled).
+Function parses config file, reads log level and save to file flag from config. First argument is file name where log will be saved. Second argument conf is config file path to be parsedand. Third argument is log level, if you will not initialize slog, it will only print messages with loglevel 0. Fourth Argument is log to file level and fifth argument is thread safety flag (1 enabled, 0 disabled).
 
 
 ### Config file
 
-Log level and log to file flags can be parsed from config file.
+More configuration options can be parsed from config file.
+
+If the conf is NULL the default values are set.
+Values from the config file override the defaults.
 
 Example of config file:
 ```
@@ -39,21 +42,15 @@ PRETTYLOG 0
 FILESTAMP 1
 LOGFILELEVEL 3
 ```
-First value is log level to control which levels should printed.
+Flag         | Type  | Default | Internal Name  | Description
+-------------|-------|---------|----------------|------------
+LOGLEVEL     | level | lvl     | slg.level      | Max level to print to stdout
+LOGTOFILE    | bool  | 0       | slg.to_file    | If 0 will not write to file
+PRETTYLOG    | bool  | 0       | slg.pretty     | If 1 will output with color
+FILESTAMP    | bool  | 1       | slg.filestamp  | If 1 will add date to log name
+LOGFILELEVEL | level | flvl    | slg.file_level | Level required to write to file
 
-Second is log to file flag
-
-Enable   | Disable
----------|---------
-1        | 0
-
-If flag is 1, logs will be saved in file, otherwise it wont.
-
-Third value is pretty log, if this flag is enabled, slog will save colored strings in file, otherwise it wont.
-
-Fourth value is log file timstamp. If this flag is enabled, the log filename provided will have a datestamp and ".log" appended to it for each write. Otherwise log filename will always be the same as provided to init_slog().
-
-Fifth value is log to file level.
+LOGFILELEVEL and LOGLEVEL are completly independent of each other.
 
 ### Logging flags
 Slog has its logging flags to print something with status code.
