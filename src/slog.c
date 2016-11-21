@@ -262,10 +262,11 @@ void slog(int level, int flag, const char *msg, ...)
     /* Lock for safe */
     if (slg.td_safe) 
     {
-        if (pthread_mutex_lock(&slog_mutex))
+        int rc;
+        if ((rc = pthread_mutex_lock(&slog_mutex)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
-                __FILE__, __LINE__, __FUNCTION__, errno);
+            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %s\n", 
+                __FILE__, __LINE__, __FUNCTION__, strerror(rc));
             exit(EXIT_FAILURE);
         }
     }
@@ -357,10 +358,11 @@ void slog(int level, int flag, const char *msg, ...)
     /* Done, unlock mutex */
     if (slg.td_safe) 
     {
-        if (pthread_mutex_unlock(&slog_mutex)) 
+        int rc;
+        if ((rc = pthread_mutex_unlock(&slog_mutex)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %d\n", 
-                __FILE__, __LINE__, __FUNCTION__, errno);
+            printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %s\n", 
+                __FILE__, __LINE__, __FUNCTION__, strerror(rc));
             exit(EXIT_FAILURE);
         }
     }
@@ -390,13 +392,14 @@ void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_saf
     {
         /* Init mutex attribute */
         pthread_mutexattr_t m_attr;
-        if (pthread_mutexattr_init(&m_attr) ||
-            pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE) ||
-            pthread_mutex_init(&slog_mutex, &m_attr) ||
-            pthread_mutexattr_destroy(&m_attr))
+        int rc;
+        if ((rc = pthread_mutexattr_init(&m_attr)) ||
+            (rc = pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE)) ||
+            (rc = pthread_mutex_init(&slog_mutex, &m_attr)) ||
+            (rc = pthread_mutexattr_destroy(&m_attr)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
-                __FILE__, __LINE__, __FUNCTION__, errno);
+            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %s\n", 
+                __FILE__, __LINE__, __FUNCTION__, strerror(rc));
             slg.td_safe = 0;
         }
     }
