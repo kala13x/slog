@@ -31,7 +31,7 @@ int main()
     greet();
 
     /* 
-    * slog_init - Initialise slog 
+    * slog_init - Initialize slog 
     * First argument is log filename 
     * Second argument is config file
     * Third argument is max log level on console
