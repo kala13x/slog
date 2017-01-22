@@ -50,7 +50,7 @@ FILESTAMP 1
 LOGFILELEVEL 3
 ```
 Flag         | Default | Internal Name  | Description
----------------------- |----------------|------------
+-------------|---------|----------------|------------
 LOGLEVEL     | lvl*    | slg.level      | Max level to print to `stdout`.
 LOGTOFILE    | 0       | slg.to_file    | If 0 will not write to file.
 PRETTYLOG    | 0       | slg.pretty     | If 1 will output with color.
