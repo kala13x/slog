@@ -264,8 +264,8 @@ void slog(int level, int flag, const char *msg, ...)
         int rc;
         if ((rc = pthread_mutex_lock(&slog_mutex)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %s\n",
-                   __FILE__, __LINE__, __FUNCTION__, strerror(rc));
+            printf("[ERROR] <%s:%d> inside %s(): Can not lock mutex: %s\n",
+                   __FILE__, __LINE__, __func__, strerror(rc));
             exit(EXIT_FAILURE);
         }
     }
@@ -283,11 +283,14 @@ void slog(int level, int flag, const char *msg, ...)
     bzero(color, sizeof(color));
     bzero(alarm, sizeof(alarm));
 
+
+
     /* Read args. */
     va_list args;
     va_start(args, msg);
     vsprintf(string, msg, args);
     va_end(args);
+
 
     /* Check logging levels. */
     if (!level || level <= slg.level || level <= slg.file_level)
@@ -295,47 +298,47 @@ void slog(int level, int flag, const char *msg, ...)
         /* Handle flags. */
         switch (flag)
         {
-            case SLOG_LIVE:
+            case SLOG_FLIVE:
                 strncpy(color, CLR_NORMAL, sizeof(color));
                 strncpy(alarm, "LIVE", sizeof(alarm));
                 break;
-            case SLOG_INFO:
+            case SLOG_FINFO:
                 strncpy(color, CLR_GREEN, sizeof(color));
                 strncpy(alarm, "INFO", sizeof(alarm));
                 break;
-            case SLOG_WARN:
+            case SLOG_FWARN:
                 strncpy(color, CLR_YELLOW, sizeof(color));
                 strncpy(alarm, "WARN", sizeof(alarm));
                 break;
-            case SLOG_DEBUG:
+            case SLOG_FDEBUG:
                 strncpy(color, CLR_BLUE, sizeof(color));
                 strncpy(alarm, "DEBUG", sizeof(alarm));
                 break;
-            case SLOG_ERROR:
+            case SLOG_FERROR:
                 strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "ERROR", sizeof(alarm));
                 break;
-            case SLOG_FATAL:
+            case SLOG_FFATAL:
                 strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "FATAL", sizeof(alarm));
                 break;
-            case SLOG_PANIC:
-                strncpy(color, CLR_WHITE, sizeof(color));
+            case SLOG_FPANIC:
+                strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "PANIC", sizeof(alarm));
                 break;
-            case SLOG_NONE:
+            case SLOG_FNONE:
                 strncpy(prints, string, sizeof(string));
                 break;
             default:
                 strncpy(prints, string, sizeof(string));
-                flag = SLOG_NONE;
+                flag = SLOG_FNONE;
                 break;
         }
 
         /* Print output. */
         if (level <= slg.level || slg.pretty)
         {
-            if (flag != SLOG_NONE) 
+            if (flag != SLOG_FNONE) 
             {
                 sprintf(prints, "[%s] %s", strclr(color, alarm), string);
             }
@@ -354,7 +357,7 @@ void slog(int level, int flag, const char *msg, ...)
             }
             else
             {
-                if (flag != SLOG_NONE) 
+                if (flag != SLOG_FNONE) 
                 {
                     sprintf(prints, "[%s] %s", alarm, string);
                 }
@@ -373,8 +376,8 @@ void slog(int level, int flag, const char *msg, ...)
         int rc;
         if ((rc = pthread_mutex_unlock(&slog_mutex)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %s\n",
-                   __FILE__, __LINE__, __FUNCTION__, strerror(rc));
+            printf("[ERROR] <%s:%d> inside %s(): Can not deinitialize mutex: %s\n",
+                   __FILE__, __LINE__, __func__, strerror(rc));
             exit(EXIT_FAILURE);
         }
     }
@@ -404,8 +407,8 @@ void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_saf
                 (rc = pthread_mutex_init(&slog_mutex, &m_attr)) ||
                 (rc = pthread_mutexattr_destroy(&m_attr)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %s\n",
-                   __FILE__, __LINE__, __FUNCTION__, strerror(rc));
+            printf("[ERROR] <%s:%d> inside %s(): Can not initialize mutex: %s\n",
+                   __FILE__, __LINE__, __func__, strerror(rc));
             slg.td_safe = 0;
         }
     }
@@ -420,10 +423,10 @@ void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_saf
     /* Handle config parser status. */
     if (!status) 
     {
-        slog(0, SLOG_INFO, "Initializing logger values without config");
+        slog(0, SLOG_FINFO, "Initializing logger values without config");
     }
     else 
     {
-        slog(0, SLOG_INFO, "Loading logger config from: %s", conf);
+        slog(0, SLOG_FINFO, "Loading logger config from: %s", conf);
     }
 }

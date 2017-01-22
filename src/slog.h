@@ -37,10 +37,50 @@ extern "C" {
 #include <pthread.h>
 
 
+/* 
+ * SOURCE_THROW_LOCATION macro returns string which 
+ * points to the file, as well as, the corresponding line 
+ * of the caller function.
+ */
+#define LVL1(x) #x
+#define LVL2(x) LVL1(x)
+#define SOURCE_THROW_LOCATION "<"__FILE__":"LVL2(__LINE__)"> -- "
+
+
+/* 
+ * Define macros to allow us get further informations 
+ * on the corresponding erros. These macros used as wrappers 
+ * for slog() function.
+ */
+#define slog_none(LEVEL, ...) \
+    slog(LEVEL, SLOG_FNONE, __VA_ARGS__);
+
+#define slog_live(LEVEL, ...) \
+    slog(LEVEL, SLOG_FLIVE, __VA_ARGS__);
+
+#define slog_info(LEVEL, ...) \
+    slog(LEVEL, SLOG_FINFO, __VA_ARGS__);
+
+#define slog_warn(LEVEL, ...) \
+    slog(LEVEL, SLOG_FWARN, SOURCE_THROW_LOCATION __VA_ARGS__);
+
+#define slog_debug(LEVEL, ...) \
+    slog(LEVEL, SLOG_FDEBUG, __VA_ARGS__);
+
+#define slog_error(LEVEL, ...) \
+    slog(LEVEL, SLOG_FERROR, SOURCE_THROW_LOCATION __VA_ARGS__);
+
+#define slog_fatal(LEVEL, ...) \
+    slog(LEVEL, SLOG_FFATAL, SOURCE_THROW_LOCATION __VA_ARGS__);
+
+#define slog_panic(LEVEL, ...) \
+    slog(LEVEL, SLOG_FPANIC, SOURCE_THROW_LOCATION __VA_ARGS__);
+
+
 /* Definitions for version informations. */
 #define SLOGVERSION_MAJOR   1
-#define SLOGVERSION_MINOR   4
-#define SLOGBUILD_NUM       85
+#define SLOGVERSION_MINOR   5
+#define SLOGBUILD_NUM       1
 
 
 /* If compiled on DARWIN/Apple platforms. */
@@ -51,14 +91,14 @@ extern "C" {
 
 
 /* Loging flags. */
-#define SLOG_NONE   0
-#define SLOG_LIVE   1
-#define SLOG_INFO   2
-#define SLOG_WARN   3
-#define SLOG_DEBUG  4
-#define SLOG_ERROR  5
-#define SLOG_FATAL  6
-#define SLOG_PANIC  7
+#define SLOG_FNONE   0
+#define SLOG_FLIVE   1
+#define SLOG_FINFO   2
+#define SLOG_FWARN   3
+#define SLOG_FDEBUG  4
+#define SLOG_FERROR  5
+#define SLOG_FFATAL  6
+#define SLOG_FPANIC  7
 
 
 /* Supported colors. */
