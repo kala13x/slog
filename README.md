@@ -85,7 +85,7 @@ slog(0, SLOG_LIVE, "Test message with level 0");
 
 *Output, taken from example directory:*
 
-![alt tag](https://github.com/GeorgeGkas/slog/blob/master/slog.png)
+![alt tag](https://github.com/GeorgeGkas/slog/blob/version_1.5/slog.png)
 
 #### UPDATE
 From version 1.5 we provide a cleaner option to generate errors without the need to provide the flag parameter. 
