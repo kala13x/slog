@@ -65,14 +65,14 @@ LOGFILELEVEL | lvl**   | flvl           | slg.file_level | Level required to wri
 ### Logging flags
 Slog has its logging flags to print something with status code.
 
-- `SLOG_FLIVE`
-- `SLOG_FINFO`
-- `SLOG_FWARN`
-- `SLOG_FDEBUG`
-- `SLOG_FERROR`
-- `SLOG_FFATAL`
-- `SLOG_FPANIC`
-- `SLOG_FNONE`
+- `SLOG_LIVE`
+- `SLOG_INFO`
+- `SLOG_WARN`
+- `SLOG_DEBUG`
+- `SLOG_ERROR`
+- `SLOG_FATAL`
+- `SLOG_PANIC`
+- `SLOG_NONE`
 
 ### Print and log something
 Here is an example on how use slog.

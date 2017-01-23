@@ -298,47 +298,47 @@ void slog(int level, int flag, const char *msg, ...)
         /* Handle flags. */
         switch (flag)
         {
-            case SLOG_FLIVE:
+            case SLOG_LIVE:
                 strncpy(color, CLR_NORMAL, sizeof(color));
                 strncpy(alarm, "LIVE", sizeof(alarm));
                 break;
-            case SLOG_FINFO:
+            case SLOG_INFO:
                 strncpy(color, CLR_GREEN, sizeof(color));
                 strncpy(alarm, "INFO", sizeof(alarm));
                 break;
-            case SLOG_FWARN:
+            case SLOG_WARN:
                 strncpy(color, CLR_YELLOW, sizeof(color));
                 strncpy(alarm, "WARN", sizeof(alarm));
                 break;
-            case SLOG_FDEBUG:
+            case SLOG_DEBUG:
                 strncpy(color, CLR_BLUE, sizeof(color));
                 strncpy(alarm, "DEBUG", sizeof(alarm));
                 break;
-            case SLOG_FERROR:
+            case SLOG_ERROR:
                 strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "ERROR", sizeof(alarm));
                 break;
-            case SLOG_FFATAL:
+            case SLOG_FATAL:
                 strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "FATAL", sizeof(alarm));
                 break;
-            case SLOG_FPANIC:
+            case SLOG_PANIC:
                 strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "PANIC", sizeof(alarm));
                 break;
-            case SLOG_FNONE:
+            case SLOG_NONE:
                 strncpy(prints, string, sizeof(string));
                 break;
             default:
                 strncpy(prints, string, sizeof(string));
-                flag = SLOG_FNONE;
+                flag = SLOG_NONE;
                 break;
         }
 
         /* Print output. */
         if (level <= slg.level || slg.pretty)
         {
-            if (flag != SLOG_FNONE) 
+            if (flag != SLOG_NONE) 
             {
                 sprintf(prints, "[%s] %s", strclr(color, alarm), string);
             }
@@ -357,7 +357,7 @@ void slog(int level, int flag, const char *msg, ...)
             }
             else
             {
-                if (flag != SLOG_FNONE) 
+                if (flag != SLOG_NONE) 
                 {
                     sprintf(prints, "[%s] %s", alarm, string);
                 }
@@ -423,10 +423,10 @@ void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_saf
     /* Handle config parser status. */
     if (!status) 
     {
-        slog(0, SLOG_FINFO, "Initializing logger values without config");
+        slog(0, SLOG_INFO, "Initializing logger values without config");
     }
     else 
     {
-        slog(0, SLOG_FINFO, "Loading logger config from: %s", conf);
+        slog(0, SLOG_INFO, "Loading logger config from: %s", conf);
     }
 }

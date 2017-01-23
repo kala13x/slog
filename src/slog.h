@@ -53,28 +53,28 @@ extern "C" {
  * for slog() function.
  */
 #define slog_none(LEVEL, ...) \
-    slog(LEVEL, SLOG_FNONE, __VA_ARGS__);
+    slog(LEVEL, SLOG_NONE, __VA_ARGS__);
 
 #define slog_live(LEVEL, ...) \
-    slog(LEVEL, SLOG_FLIVE, __VA_ARGS__);
+    slog(LEVEL, SLOG_LIVE, __VA_ARGS__);
 
 #define slog_info(LEVEL, ...) \
-    slog(LEVEL, SLOG_FINFO, __VA_ARGS__);
+    slog(LEVEL, SLOG_INFO, __VA_ARGS__);
 
 #define slog_warn(LEVEL, ...) \
-    slog(LEVEL, SLOG_FWARN, SOURCE_THROW_LOCATION __VA_ARGS__);
+    slog(LEVEL, SLOG_WARN, SOURCE_THROW_LOCATION __VA_ARGS__);
 
 #define slog_debug(LEVEL, ...) \
-    slog(LEVEL, SLOG_FDEBUG, __VA_ARGS__);
+    slog(LEVEL, SLOG_DEBUG, __VA_ARGS__);
 
 #define slog_error(LEVEL, ...) \
-    slog(LEVEL, SLOG_FERROR, SOURCE_THROW_LOCATION __VA_ARGS__);
+    slog(LEVEL, SLOG_ERROR, SOURCE_THROW_LOCATION __VA_ARGS__);
 
 #define slog_fatal(LEVEL, ...) \
-    slog(LEVEL, SLOG_FFATAL, SOURCE_THROW_LOCATION __VA_ARGS__);
+    slog(LEVEL, SLOG_FATAL, SOURCE_THROW_LOCATION __VA_ARGS__);
 
 #define slog_panic(LEVEL, ...) \
-    slog(LEVEL, SLOG_FPANIC, SOURCE_THROW_LOCATION __VA_ARGS__);
+    slog(LEVEL, SLOG_PANIC, SOURCE_THROW_LOCATION __VA_ARGS__);
 
 
 /* Definitions for version informations. */
@@ -91,14 +91,14 @@ extern "C" {
 
 
 /* Loging flags. */
-#define SLOG_FNONE   0
-#define SLOG_FLIVE   1
-#define SLOG_FINFO   2
-#define SLOG_FWARN   3
-#define SLOG_FDEBUG  4
-#define SLOG_FERROR  5
-#define SLOG_FFATAL  6
-#define SLOG_FPANIC  7
+#define SLOG_NONE   0
+#define SLOG_LIVE   1
+#define SLOG_INFO   2
+#define SLOG_WARN   3
+#define SLOG_DEBUG  4
+#define SLOG_ERROR  5
+#define SLOG_FATAL  6
+#define SLOG_PANIC  7
 
 
 /* Supported colors. */
