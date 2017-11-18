@@ -264,8 +264,8 @@ void slog(int level, int flag, const char *msg, ...)
         int rc;
         if ((rc = pthread_mutex_lock(&slog_mutex)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %s\n",
-                   __FILE__, __LINE__, __FUNCTION__, strerror(rc));
+            printf("[ERROR] <%s:%d> inside %s(): Can not lock mutex: %s\n",
+                   __FILE__, __LINE__, __func__, strerror(rc));
             exit(EXIT_FAILURE);
         }
     }
@@ -283,11 +283,14 @@ void slog(int level, int flag, const char *msg, ...)
     bzero(color, sizeof(color));
     bzero(alarm, sizeof(alarm));
 
+
+
     /* Read args. */
     va_list args;
     va_start(args, msg);
     vsprintf(string, msg, args);
     va_end(args);
+
 
     /* Check logging levels. */
     if (!level || level <= slg.level || level <= slg.file_level)
@@ -320,7 +323,7 @@ void slog(int level, int flag, const char *msg, ...)
                 strncpy(alarm, "FATAL", sizeof(alarm));
                 break;
             case SLOG_PANIC:
-                strncpy(color, CLR_WHITE, sizeof(color));
+                strncpy(color, CLR_RED, sizeof(color));
                 strncpy(alarm, "PANIC", sizeof(alarm));
                 break;
             case SLOG_NONE:
@@ -373,8 +376,8 @@ void slog(int level, int flag, const char *msg, ...)
         int rc;
         if ((rc = pthread_mutex_unlock(&slog_mutex)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not deinitialize mutex: %s\n",
-                   __FILE__, __LINE__, __FUNCTION__, strerror(rc));
+            printf("[ERROR] <%s:%d> inside %s(): Can not deinitialize mutex: %s\n",
+                   __FILE__, __LINE__, __func__, strerror(rc));
             exit(EXIT_FAILURE);
         }
     }
@@ -404,8 +407,8 @@ void slog_init(const char* fname, const char* conf, int lvl, int flvl, int t_saf
                 (rc = pthread_mutex_init(&slog_mutex, &m_attr)) ||
                 (rc = pthread_mutexattr_destroy(&m_attr)))
         {
-            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %s\n",
-                   __FILE__, __LINE__, __FUNCTION__, strerror(rc));
+            printf("[ERROR] <%s:%d> inside %s(): Can not initialize mutex: %s\n",
+                   __FILE__, __LINE__, __func__, strerror(rc));
             slg.td_safe = 0;
         }
     }
