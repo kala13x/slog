@@ -1,4 +1,4 @@
-## slog Logging Library - 1.5 build 1
+## slog Logging Library - 1.6 build 1
 Slog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
@@ -22,14 +22,13 @@ If you want to use slog in your C/C++ application, include `slog.h` header in yo
 ### Simple API
 At first you should initialize slog
 ```c
-slog_init("logfile", "slog.cfg", 1, 3, 1);
+slog_init("logfile", "slog.cfg", 1, 0);
 ```
 
  - First argument is file name where log will be saved. 
  - Second argument is config file path to be parsed *(see the next section for more informations about the config file)*. 
  - Third argument is max log level, if you will not initialize slog, it will only print messages with log level 0. 
- - Fourth argument is max log to file level, which is the same as the previous flag, with the difference that this corresponds to file log level. 
- - Fifth argument is thread safety flag *(1 enabled, 0 disabled)*. We recommend to always enable this flag.
+ - Fourth argument is thread safety flag *(1 enabled, 0 disabled)*. We recommend to always enable this flag.
 
 **Note:** Although, you can run slog without initialization, we recommend this action. If you don't initialize slog, you'll only be able to export log messages in console. Also the default config values will be used.
 
