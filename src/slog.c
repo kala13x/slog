@@ -347,16 +347,16 @@ void slog_config_set(SlogConfig *pCfg)
     slog_sync_unlock();
 }
 
-void slog_init(const char* pName, const char* pConf, int nLogLvl, int nFileLvl, int nTdSafe)
+void slog_init(const char* pName, const char* pConf, int nLogLevel, int nTdSafe)
 {
     /* Set up default values */
     memset(g_slogCfg.sFileName, 0, sizeof(g_slogCfg.sFileName));
     strcpy(g_slogCfg.sFileName, pName);
 
-    g_slogCfg.nFileLevel = nFileLvl;
-    g_slogCfg.nLogLevel = nLogLvl;
+    g_slogCfg.nLogLevel = nLogLevel;
     g_slogCfg.nTdSafe = nTdSafe;
     g_slogCfg.nFileStamp = 1;
+    g_slogCfg.nFileLevel = 0;
     g_slogCfg.nErrLog = 0;
     g_slogCfg.nSilent = 0;
     g_slogCfg.nToFile = 0;

@@ -129,7 +129,7 @@ const char* slog_version(int nMin);
 void slog_config_get(SlogConfig *pCfg);
 void slog_config_set(SlogConfig *pCfg);
 
-void slog_init(const char* pName, const char* pConf, int nLogLvl, int nFileLvl, int nTdSafe);
+void slog_init(const char* pName, const char* pConf, int nLogLevel, int nTdSafe);
 void slog(int level, int flag, const char *pMsg, ...);
 
 /* For include header in CPP code */
