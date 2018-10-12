@@ -37,9 +37,7 @@
 #define MAXMSG 8196
 #define BIGSTR 4098
 
-static pthread_mutex_t g_slogLock;
 static SlogConfig g_slogCfg;
-
 static SlogTag g_SlogTags[] =
 {
     { 0, "NONE", NULL },
@@ -52,11 +50,11 @@ static SlogTag g_SlogTags[] =
     { 7, "PANIC", CLR_WHITE }
 };
 
-void slog_lock(pthread_mutex_t *pMutex)
+void slog_sync_lock()
 {
     if (g_slogCfg.nTdSafe)
     {
-        if (pthread_mutex_lock(pMutex))
+        if (pthread_mutex_lock(&g_slogCfg.slogLock))
         {
             printf("[ERROR] Slog can not lock mutex: %d\n", errno);
             exit(EXIT_FAILURE);
@@ -64,16 +62,48 @@ void slog_lock(pthread_mutex_t *pMutex)
     }
 }
 
-void slog_unlock(pthread_mutex_t *pMutex)
+void slog_sync_unlock()
 {
     if (g_slogCfg.nTdSafe) 
     {
-        if (pthread_mutex_unlock(pMutex))
+        if (pthread_mutex_unlock(&g_slogCfg.slogLock))
         {
             printf("[ERROR] Slog can not unlock mutex: %d\n", errno);
             exit(EXIT_FAILURE);
         }
     }
+}
+
+void slog_sync_init()
+{
+    if (g_slogCfg.nTdSafe)
+    {
+        /* Init mutex attribute */
+        pthread_mutexattr_t m_attr;
+        if (pthread_mutexattr_init(&m_attr) ||
+            pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE) ||
+            pthread_mutex_init(&g_slogCfg.slogLock, &m_attr) ||
+            pthread_mutexattr_destroy(&m_attr))
+        {
+            printf("[ERROR] Slog can not initialize mutex: %d\n", errno);
+            g_slogCfg.nTdSafe = 0;
+            g_slogCfg.nSync = 0;
+        }
+
+        g_slogCfg.nSync = 1;
+    }
+}
+
+void slog_sync_destroy()
+{
+    if (pthread_mutex_destroy(&g_slogCfg.slogLock))
+    {
+        printf("[ERROR] Can not deinitialize mutex: %d\n", errno);
+        exit(EXIT_FAILURE);
+    }
+
+    g_slogCfg.nSync = 0;
+    g_slogCfg.nTdSafe = 0;
 }
 
 #ifdef DARWIN
@@ -178,6 +208,8 @@ void slog_to_file(char *pStr, const char *pFile, SlogDate *pDate)
 
 int slog_parse_config(const char *pConfig)
 {
+    if (pConfig == NULL) return 0;
+
     FILE *pFile = fopen(pConfig, "r");
     if(pFile == NULL) return 0;
 
@@ -221,13 +253,13 @@ int slog_parse_config(const char *pConfig)
 
 void slog(int nLevel, int nFlag, const char *pMsg, ...)
 {
-    slog_lock(&g_slogLock);
+    slog_sync_lock();
 
     if (g_slogCfg.nSilent && 
         (nFlag == SLOG_DEBUG || 
         nFlag == SLOG_LIVE)) 
     {
-        slog_unlock(&g_slogLock);
+        slog_sync_unlock();
         return;
     }
 
@@ -265,12 +297,15 @@ void slog(int nLevel, int nFlag, const char *pMsg, ...)
         }
     }
 
-    slog_unlock(&g_slogLock);
+    slog_sync_unlock();
 }
 
 void slog_config_get(SlogConfig *pCfg)
 {
-    slog_lock(&g_slogLock);
+    slog_sync_lock();
+    memset(pCfg->sFileName, 0, sizeof(pCfg->sFileName));
+    strcpy(pCfg->sFileName, g_slogCfg.sFileName);
+
     pCfg->nFileStamp = g_slogCfg.nFileStamp;
     pCfg->nFileLevel = g_slogCfg.nFileLevel;
     pCfg->nLogLevel = g_slogCfg.nLogLevel;
@@ -279,12 +314,15 @@ void slog_config_get(SlogConfig *pCfg)
     pCfg->nTdSafe = g_slogCfg.nTdSafe;
     pCfg->nErrLog = g_slogCfg.nErrLog;
     pCfg->nSilent = g_slogCfg.nSilent;
-    slog_unlock(&g_slogLock);
+    slog_sync_unlock();
 }
 
 void slog_config_set(SlogConfig *pCfg)
 {
-    slog_lock(&g_slogLock);
+    slog_sync_lock();
+    memset(g_slogCfg.sFileName, 0, sizeof(g_slogCfg.sFileName));
+    strcpy(g_slogCfg.sFileName, pCfg->sFileName);
+
     g_slogCfg.nFileStamp = pCfg->nFileStamp;
     g_slogCfg.nFileLevel = pCfg->nFileLevel;
     g_slogCfg.nLogLevel = pCfg->nLogLevel;
@@ -293,40 +331,40 @@ void slog_config_set(SlogConfig *pCfg)
     g_slogCfg.nTdSafe = pCfg->nTdSafe;
     g_slogCfg.nErrLog = pCfg->nErrLog;
     g_slogCfg.nSilent = pCfg->nSilent;
-    slog_unlock(&g_slogLock);
+
+    if (g_slogCfg.nTdSafe && !g_slogCfg.nSync)
+    {
+        slog_sync_init();
+        slog_sync_lock();
+    }
+    else if (!g_slogCfg.nTdSafe && g_slogCfg.nSync)
+    {
+        g_slogCfg.nTdSafe = 1;
+        slog_sync_unlock();
+        slog_sync_destroy();
+    }
+
+    slog_sync_unlock();
 }
 
-void slog_init_defaults(const char* pName, const char* pConf, int nLevel, int nTdSafe)
+void slog_init(const char* pName, const char* pConf, int nLogLvl, int nFileLvl, int nTdSafe)
 {
     /* Set up default values */
+    memset(g_slogCfg.sFileName, 0, sizeof(g_slogCfg.sFileName));
     strcpy(g_slogCfg.sFileName, pName);
 
-    g_slogCfg.nLogLevel = nLevel;
+    g_slogCfg.nFileLevel = nFileLvl;
+    g_slogCfg.nLogLevel = nLogLvl;
     g_slogCfg.nTdSafe = nTdSafe;
     g_slogCfg.nFileStamp = 1;
-    g_slogCfg.nFileLevel = 0;
     g_slogCfg.nErrLog = 0;
     g_slogCfg.nSilent = 0;
     g_slogCfg.nToFile = 0;
     g_slogCfg.nPretty = 0;
 
     /* Init mutex sync */
-    if (nTdSafe)
-    {
-        /* Init mutex attribute */
-        pthread_mutexattr_t m_attr;
-        if (pthread_mutexattr_init(&m_attr) ||
-            pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE) ||
-            pthread_mutex_init(&g_slogLock, &m_attr) ||
-            pthread_mutexattr_destroy(&m_attr))
-        {
-            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
-                __FILE__, __LINE__, __FUNCTION__, errno);
-            g_slogCfg.nTdSafe = 0;
-        }
-    }
+    slog_sync_init();
 
     /* Parse config file */
-    if (pConf != NULL) 
-        slog_parse_config(pConf);
+    slog_parse_config(pConf);
 }

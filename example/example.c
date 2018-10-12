@@ -30,7 +30,7 @@ int main()
     greet();
 
     /* Initialize slog with default parameters */
-    slog_init("example", "slog.cfg", 3, 0);
+    slog_init("example", "slog.cfg", 3, 1, 0);
 
     /* Log and print something with level 0 */
     slog(0, SLOG_LIVE, "Test message with level 0");

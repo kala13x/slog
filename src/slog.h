@@ -36,7 +36,7 @@ extern "C" {
 /* Definations for version info */
 #define SLOGVERSION_MAJOR  1
 #define SLOGVERSION_MINOR  6
-#define SLOGBUILD_NUM      1
+#define SLOGBUILD_NUM      2
 
 /* Loging flags */
 #define SLOG_NONE   0
@@ -95,14 +95,16 @@ extern "C" {
 /* Flags */
 typedef struct {
     char sFileName[64];
-    short nFileStamp;
-    short nFileLevel;
-    short nLogLevel;
-    short nToFile;
-    short nPretty;
-    short nTdSafe;
-    short nErrLog;
-    short nSilent;
+    unsigned short nFileLevel;
+    unsigned short nLogLevel;
+    unsigned short nFileStamp:1;
+    unsigned short nToFile:1;
+    unsigned short nPretty:1;
+    unsigned short nTdSafe:1;
+    unsigned short nErrLog:1;
+    unsigned short nSilent:1;
+    unsigned short nSync:1;
+    pthread_mutex_t slogLock;
 } SlogConfig;
 
 /* Date variables */
@@ -127,7 +129,7 @@ const char* slog_version(int nMin);
 void slog_config_get(SlogConfig *pCfg);
 void slog_config_set(SlogConfig *pCfg);
 
-void slog_init(const char* pName, const char* pConf, int nLevel, int nTdSafe);
+void slog_init(const char* pName, const char* pConf, int nLogLvl, int nFileLvl, int nTdSafe);
 void slog(int level, int flag, const char *pMsg, ...);
 
 /* For include header in CPP code */
