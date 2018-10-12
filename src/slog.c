@@ -361,6 +361,7 @@ void slog_init(const char* pName, const char* pConf, int nLogLvl, int nFileLvl, 
     g_slogCfg.nSilent = 0;
     g_slogCfg.nToFile = 0;
     g_slogCfg.nPretty = 0;
+    g_slogCfg.nSync = 0;
 
     /* Init mutex sync */
     slog_sync_init();
