@@ -59,7 +59,6 @@ LOGFILELEVEL | lvl**   | flvl           | slg.file_level | Level required to wri
 **Note:** `LOGFILELEVEL` and `LOGLEVEL` are completely independent of each other.
 
 **`LOGLEVEL` is passed as third argument in `slog_init()`.*   
-**`LOGFILELEVEL` is passed as fourth argument in `slog_init()`.*
 
 ### Logging flags
 Slog has its logging flags to print something with status code.
