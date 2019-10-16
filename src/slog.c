@@ -169,7 +169,9 @@ void slog_prepare_output(const char* pStr, const SlogDate *pDate, int nType, int
                     pDate->min, pDate->sec, pDate->usec);
 
     /* Walk throu */
-    for (int i = 0;; i++)
+    int i;
+    for (i = 0;; i++)
+    //for (int i = 0;; i++)
     {
         if ((nType == SLOG_NONE) && !g_SlogTags[i].nType && (g_SlogTags[i].pDesc == NULL))
         {
