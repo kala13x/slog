@@ -2,7 +2,7 @@
 SLog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
-Installation is possible with makefile
+Installation is possible with `Makefile`
 ```
 git clone https://github.com/kala13x/slog.git
 cd slog
@@ -18,6 +18,7 @@ If you want to use slog in your C/C++ application, include `slog.h` header in yo
 At first you should initialize slog
 ```c
 int nFlags = SLOG_NOTAG | SLOG_ERROR;
+int nFlags |= SLOG_WARN | SLOG_FATAL;
 slog_init("logfile", nFlags, 0);
 ```
 
@@ -27,10 +28,10 @@ slog_init("logfile", nFlags, 0);
 
 If thread safety flag is greater than zero, function initializes mutex and evety other call of any slog function is protected by mutex locks.
 
-With the above slog initialization example only errors and not tagged messages will be printed because there is no other flags activated.
+With the above slog initialization example only errors, warnings and not tagged messages will be printed because there is no other flags activated.
 You can also activate or deactivate any logging level after slog initialization with `slog_enable()` and `slog_disable()` functions.
 
-```
+```c
 /* Enable all logging levels */
 slog_enable(SLOG_FLAGS_ALL);
 
@@ -44,16 +45,16 @@ slog_enable(SLOG_TRACE);
 slog_disable(SLOG_FLAGS_ALL);
 ```
 
-You must deinitialize slog only if the thread safe flag is greater than zero (nTdSafe > 0) while initialization.
+You must deinitialize slog only if the thread safety flag is greater than zero (nTdSafe > 0) while initialization.
 
-```
+```c
 slog_destroy();
 ```
-Destrois the mutex attribute and sets thread safe flag to zero.
+Function destrois the mutex attribute and sets thread safety flag to zero.
 
 ### Configuration
 
-Scinse version 1.8.* config file is not supported anymore but there is a way to change configuration parameters of already initialized slog.
+Since version 1.8.* config file is not supported anymore but there is a way to change configuration parameters of already initialized slog.
 
 Parameter    | Type              | Default        | Description
 -------------|-------------------|----------------|-------------------------------
@@ -66,10 +67,10 @@ nToFile      | uint8_t           | 0 (disabled)   | Enable file logging.
 nFlush       | uint8_t           | 0 (disabled)   | Flush stdout after screen log.
 nFlags       | uint16_t          | 0 (no logs)    | Allowed log level flags.
 
-Any of those parameters above can be changed after initialization with `slog_config_set()` function.
+Any of those parameters above can be changed at the runtime with the `slog_config_set()` function.
 
 Example:
-```
+```c
 SLogConfig slgCfg;
 
 /* Setup configuration parameters */
@@ -88,7 +89,7 @@ slog_config_set(&slgCfg);
 
 If you want to change only few parameters without resetting other ones, you can thread safe read current working configuration and update only needed parameters.
 
-```
+```c
 SLogConfig slgCfg;
 slog_config_get(&slgCfg);
 
@@ -124,7 +125,7 @@ slogwn("Simple test message without new line character");
 
 *Output, taken from example directory:*
 
-![alt tag](https://github.com/GeorgeGkas/slog/blob/version_1.5/slog.png)
+![alt tag](https://github.com/kala13x/slog/blob/master/example/slog.png)
 
 #### UPDATE
 From version 1.5 we provide a cleaner option to generate errors without the need to provide the flag parameter. 
@@ -149,10 +150,10 @@ Bellow we provide an example that logs a debug message:
 slog_debug("The %s contains between %d and %d billion stars and at least %d billion planets.  ", "Milky Way", 200, 400, 100);
 ```
 
-In addition, we added the option to print the corresponding file name and line number where a slog macro was called. This rule follows the macros which relate to a critical flag, and shown bellow:
+In addition, we added the option to print the corresponding file name and line number where a slog macro was called. This rule follows the macros which relate to a critical or trace flag, and shown bellow:
 
+- `slog_trace()`
 - `slog_fatal()`
-- `slog_panic()`
 
 Basic example:
 ```c
@@ -170,22 +171,23 @@ slog_trace();
 ```
 With expected output to be:
 
-    2017.01.22-19:03:17.03 - <trace> [example.c:72].
+    2017.01.22-19:03:17.03 - <trace> [example.c:72]
 
 ### Version
-`slog_version()` is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build name and etc.
+`slog_version()` is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build date and etc.
 
 Usage:
 ```c
 printf("slog Version: %s", slog_version(1));
 ```
+
 Output will be something like that:
 ```
 slog Version: 1.5 build 1 (Jan 22 2017)
 ```
 
 ### Output
-Here is example output strings of slog
+Here is example output messages of slog
 ```
 2020.12.13-19:41:41.27 - Simple message without anything
 2020.12.13-19:41:41.27 - Simple message with our own new line character
