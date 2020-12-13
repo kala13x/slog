@@ -1,8 +1,7 @@
 /*
  * The MIT License (MIT)
- *  
- *  Copyleft (C) 2015 - 2018  Sun Dro (a.k.a. kala13x)
- *  Copyleft (C) 2017  George G. Gkasdrogkas (a.k.a. GeorgeGkas)
+ *
+ *  Copyleft (C) 2015-2020  Sun Dro (f4tb0y@protonmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,350 +23,292 @@
  */
 
 #include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <errno.h>
 #include <time.h>
 #include "slog.h"
 
-/* Max size of string */
-#define MAXMSG 8196
-#define BIGSTR 4098
+#ifndef DARWIN
+#include <syscall.h>
+#endif
+#include <sys/time.h>
 
-static SlogConfig g_slogCfg;
-static SlogTag g_SlogTags[] =
-{
-    { 0, "NONE", NULL },
-    { 1, "LIVE", CLR_NORMAL },
-    { 2, "INFO", CLR_GREEN },
-    { 3, "WARN", CLR_YELLOW },
-    { 4, "DEBUG", CLR_BLUE },
-    { 5, "ERROR", CLR_RED},
-    { 6, "FATAL", CLR_RED },
-    { 7, "PANIC", CLR_WHITE }
-};
+#ifndef PTHREAD_MUTEX_RECURSIVE 
+#define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
+#endif
 
-void slog_sync_lock()
+typedef struct SLogDate_ {
+    uint16_t nYear;
+    uint8_t nMonth;
+    uint8_t nDay;
+    uint8_t nHour;
+    uint8_t nMin;
+    uint8_t nSec;
+    uint8_t nUsec;
+} SLogDate;
+
+typedef struct SLogContext_ {
+    unsigned int nTdSafe:1;
+    pthread_mutex_t mutex;
+    SLogConfig slogConfig;
+    SLogDate slogDate;
+} SLogContext;
+
+static SLogContext g_slog;
+
+static void slog_sync_init(SLogContext *pSlog)
 {
-    if (g_slogCfg.nTdSafe)
+    if (!pSlog->nTdSafe) return;
+    pthread_mutexattr_t mutexAttr;
+
+    if (pthread_mutexattr_init(&mutexAttr) ||
+        pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_RECURSIVE) ||
+        pthread_mutex_init(&pSlog->mutex, &mutexAttr) ||
+        pthread_mutexattr_destroy(&mutexAttr))
     {
-        if (pthread_mutex_lock(&g_slogCfg.slogLock))
-        {
-            printf("[ERROR] Slog can not lock mutex: %d\n", errno);
-            exit(EXIT_FAILURE);
-        }
-    }
-}
+        printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
+            __FILE__, __LINE__, __FUNCTION__, errno);
 
-void slog_sync_unlock()
-{
-    if (g_slogCfg.nTdSafe) 
-    {
-        if (pthread_mutex_unlock(&g_slogCfg.slogLock))
-        {
-            printf("[ERROR] Slog can not unlock mutex: %d\n", errno);
-            exit(EXIT_FAILURE);
-        }
-    }
-}
-
-void slog_sync_init()
-{
-    if (g_slogCfg.nTdSafe)
-    {
-        /* Init mutex attribute */
-        pthread_mutexattr_t m_attr;
-        if (pthread_mutexattr_init(&m_attr) ||
-            pthread_mutexattr_settype(&m_attr, PTHREAD_MUTEX_RECURSIVE) ||
-            pthread_mutex_init(&g_slogCfg.slogLock, &m_attr) ||
-            pthread_mutexattr_destroy(&m_attr))
-        {
-            printf("[ERROR] Slog can not initialize mutex: %d\n", errno);
-            g_slogCfg.nTdSafe = 0;
-            g_slogCfg.nSync = 0;
-        }
-
-        g_slogCfg.nSync = 1;
-    }
-}
-
-void slog_sync_destroy()
-{
-    if (pthread_mutex_destroy(&g_slogCfg.slogLock))
-    {
-        printf("[ERROR] Can not deinitialize mutex: %d\n", errno);
         exit(EXIT_FAILURE);
     }
-
-    g_slogCfg.nSync = 0;
-    g_slogCfg.nTdSafe = 0;
 }
 
-#ifdef DARWIN
-static inline int clock_gettime(int clock_id, struct timespec *ts)
+static void slog_lock(SLogContext *pSlog)
+{
+    if (pSlog->nTdSafe && pthread_mutex_lock(&pSlog->mutex))
+    {
+        printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
+            __FILE__, __LINE__, __FUNCTION__, errno);
+
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void slog_unlock(SLogContext *pSlog)
+{
+    if (pSlog->nTdSafe && pthread_mutex_unlock(&pSlog->mutex))
+    {
+        printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
+            __FILE__, __LINE__, __FUNCTION__, errno);
+                
+        exit(EXIT_FAILURE);
+    }
+}
+
+static const char* slog_get_tag(SLOG_FLAGS_E eFlag)
+{
+    switch (eFlag)
+    {
+        case SLOG_NOTE: return "note";
+        case SLOG_INFO: return "info";
+        case SLOG_WARN: return "warn";
+        case SLOG_DEBUG: return "debug";
+        case SLOG_ERROR: return "error";
+        case SLOG_TRACE: return "trace";
+        case SLOG_FATAL: return "fatal";
+        default: break;
+    }
+
+    return NULL;
+}
+
+static const char* slog_get_color(SLOG_FLAGS_E eFlag)
+{
+    switch (eFlag)
+    {
+        case SLOG_NOTE: return SLOG_CLR_NORMAL;
+        case SLOG_INFO: return SLOG_CLR_GREEN;
+        case SLOG_WARN: return SLOG_CLR_YELLOW;
+        case SLOG_DEBUG: return SLOG_CLR_BLUE;
+        case SLOG_ERROR: return SLOG_CLR_RED;
+        case SLOG_TRACE: return SLOG_CLR_CYAN;
+        case SLOG_FATAL: return SLOG_CLR_MAGENTA;
+        default: break;
+    }
+
+    return SLOG_CLR_NORMAL;
+}
+
+static uint8_t slog_get_usec()
 {
     struct timeval tv;
-
-    if (clock_id != CLOCK_REALTIME) 
-    {
-        errno = EINVAL;
-        return -1;
-    }
-    if (gettimeofday(&tv, NULL) < 0) 
-    {
-        return -1;
-    }
-    ts->tv_sec = tv.tv_sec;
-    ts->tv_nsec = tv.tv_usec * 1000;
-    return 0;
+    if (gettimeofday(&tv, NULL) < 0) return 0;
+    return (uint8_t)(tv.tv_usec / 10000);
 }
-#endif /* DARWIN */
 
-void slog_get_date(SlogDate *pDate)
+static void slog_get_date(SLogDate *pDate) 
 {
     struct tm timeinfo;
     time_t rawtime = time(NULL);
     localtime_r(&rawtime, &timeinfo);
 
-    /* Get System Date */
-    pDate->year = timeinfo.tm_year+1900;
-    pDate->mon = timeinfo.tm_mon+1;
-    pDate->day = timeinfo.tm_mday;
-    pDate->hour = timeinfo.tm_hour;
-    pDate->min = timeinfo.tm_min;
-    pDate->sec = timeinfo.tm_sec;
-
-    /* Get micro seconds */
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    pDate->usec = now.tv_nsec / 10000000;
+    pDate->nYear = timeinfo.tm_year + 1900;
+    pDate->nMonth = timeinfo.tm_mon + 1;
+    pDate->nDay = timeinfo.tm_mday;
+    pDate->nHour = timeinfo.tm_hour;
+    pDate->nMin = timeinfo.tm_min;
+    pDate->nSec = timeinfo.tm_sec;
+    pDate->nUsec = slog_get_usec();
 }
 
-const char* slog_version(int nMin)
+static void slog_create_tag( char *pOut, size_t nSize, SLOG_FLAGS_E eFlag, const char *pColor)
 {
-    static char sVersion[128];
+    const char *pTag = slog_get_tag(eFlag);
+    if (pTag == NULL) return;
+
+    if (g_slog.slogConfig.eColorFormat != SLOG_COLOR_TAG) snprintf(pOut, nSize, "<%s> ", pTag);
+    else snprintf(pOut, nSize, "%s<%s>%s ", pColor, pTag, SLOG_CLR_RESET);
+}
+
+static uint32_t slog_get_tid()
+{
+#ifdef DARWIN
+    return (uint32_t)pthread_self();
+#else
+    return syscall(__NR_gettid);
+#endif
+}
+
+static void slog_display_output(char *pStr, uint8_t nNewLine)
+{
+    if (g_slog.slogConfig.nToScreen)
+    {
+        printf("%s%s", pStr, nNewLine ? "\n" : "");
+        if (g_slog.slogConfig.nFlush) fflush(stdout);
+    }
+
+    if (!g_slog.slogConfig.nToFile) return;
+    const SLogDate *pDate = &g_slog.slogDate;
+
+    char sFilePath[SLOG_PATH_MAX + SLOG_NAME_MAX + SLOG_DATE_MAX];
+    snprintf(sFilePath, sizeof(sFilePath), "%s/%s-%04d-%02d-%02d.log", 
+        g_slog.slogConfig.sFilePath[0] != 0 ? g_slog.slogConfig.sFilePath : ".", 
+        g_slog.slogConfig.sFileName[0] != 0 ? g_slog.slogConfig.sFileName : "slog", 
+        pDate->nYear, pDate->nMonth, pDate->nDay);
+
+    FILE *pFile = fopen(sFilePath, "a");
+    if (pFile == NULL) return;
+
+    fprintf(pFile, "%s%s", pStr, nNewLine ? "\n" : "");
+    fclose(pFile);
+}
+
+static void slog_create_output(char* pOut, size_t nSize, const char* pStr, SLOG_FLAGS_E eFlag)
+{
+    const SLogConfig *pConfig = &g_slog.slogConfig;
+    const SLogDate *pDate = &g_slog.slogDate;
+    char sDate[SLOG_DATE_MAX];
+
+    snprintf(sDate, sizeof(sDate), "%04d.%02d.%02d-%02d:%02d:%02d.%02d", pDate->nYear, 
+        pDate->nMonth, pDate->nDay, pDate->nHour, pDate->nMin, pDate->nSec, pDate->nUsec);
+
+    char sTid[SLOG_TAG_MAX];
+    char sTag[SLOG_TAG_MAX];
+    sTid[0] = sTag[0] = 0;
+
+    const char *pColor = slog_get_color(eFlag);
+    slog_create_tag(sTag, sizeof(sTag), eFlag, pColor);
+
+    if (pConfig->nTraceTid) snprintf(sTid, sizeof(sTid), "(%u) ", slog_get_tid());
+    if (pConfig->eColorFormat != SLOG_COLOR_FULL) snprintf(pOut, nSize, "%s%s - %s%s", sTid, sDate, sTag, pStr); 
+    else snprintf(pOut, nSize, "%s%s%s - %s%s%s", pColor, sTid, sDate, sTag, pStr, SLOG_CLR_RESET); 
+}
+
+const char* slog_version(uint8_t nMin)
+{
+    static char sVersion[SLOG_VERSION_MAX];
 
     /* Version short */
     if (nMin) sprintf(sVersion, "%d.%d.%d", 
-        SLOGVERSION_MAJOR, SLOGVERSION_MINOR, SLOGBUILD_NUM);
+        SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUM);
 
     /* Version long */
     else sprintf(sVersion, "%d.%d build %d (%s)", 
-        SLOGVERSION_MAJOR, SLOGVERSION_MINOR, SLOGBUILD_NUM, __DATE__);
+        SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUM, __DATE__);
 
     return sVersion;
 }
 
-void slog_prepare_output(const char* pStr, const SlogDate *pDate, int nType, int nColor, char* pOut, int nSize)
+void slog_config_get(SLogConfig *pCfg)
 {
-    char sDate[32];
-    snprintf(sDate, sizeof(sDate), "%02d.%02d.%02d-%02d:%02d:%02d.%02d", 
-                    pDate->year, pDate->mon, pDate->day, pDate->hour, 
-                    pDate->min, pDate->sec, pDate->usec);
-
-    /* Walk throu */
-    int i;
-    for (i = 0;; i++)
-    //for (int i = 0;; i++)
-    {
-        if ((nType == SLOG_NONE) && !g_SlogTags[i].nType && (g_SlogTags[i].pDesc == NULL))
-        {
-            snprintf(pOut, nSize, "%s - %s", sDate, pStr);
-            return;
-        }
-
-        if ((nType != SLOG_NONE) && (g_SlogTags[i].nType == nType) && (g_SlogTags[i].pDesc != NULL))
-        {
-            if (nColor)
-                snprintf(pOut, nSize, "%s - [%s%s%s] %s", sDate, g_SlogTags[i].pColor, g_SlogTags[i].pDesc, CLR_RESET, pStr);
-            else
-                snprintf(pOut, nSize, "%s - [%s] %s", sDate, g_SlogTags[i].pDesc, pStr);
-
-            return;
-        }
-    }
+    slog_lock(&g_slog);
+    *pCfg = g_slog.slogConfig;
+    slog_unlock(&g_slog);
 }
 
-void slog_to_file(char *pStr, const char *pFile, SlogDate *pDate)
+void slog_config_set(SLogConfig *pCfg)
 {
-    char sFileName[PATH_MAX];
-    memset(sFileName, 0, sizeof(sFileName));
-
-    if (g_slogCfg.nFileStamp) 
-        snprintf(sFileName, sizeof(sFileName), "%s-%02d-%02d-%02d.log", pFile, pDate->year, pDate->mon, pDate->day);
-    else 
-        snprintf(sFileName, sizeof(sFileName), "%s.log", pFile);
-
-    FILE *fp = fopen(sFileName, "a");
-    if (fp == NULL) return;
-
-    fprintf(fp, "%s\n", pStr);
-    fclose(fp);
+    slog_lock(&g_slog);
+    g_slog.slogConfig = *pCfg;
+    slog_unlock(&g_slog);
 }
 
-int slog_parse_config(const char *pConfig)
+void slog_enable(SLOG_FLAGS_E eFlag)
 {
-    if (pConfig == NULL) return 0;
-
-    FILE *pFile = fopen(pConfig, "r");
-    if(pFile == NULL) return 0;
-
-    char sArg[256], sName[32];
-    while(fscanf(pFile, "%s %[^\n]\n", sName, sArg) == 2)
-    {
-        if ((strlen(sName) > 0) && (sName[0] == '#'))
-        {
-            /* Skip comment */
-            continue;
-        }
-        else if (strcmp(sName, "LOGLEVEL") == 0)
-        {
-            g_slogCfg.nLogLevel = atoi(sArg);
-        }
-        else if (strcmp(sName, "LOGFILELEVEL") == 0)
-        {
-            g_slogCfg.nFileLevel = atoi(sArg);
-        }
-        else if (strcmp(sName, "LOGTOFILE") == 0)
-        {
-            g_slogCfg.nToFile = atoi(sArg);
-        }
-        else if (strcmp(sName, "ERRORLOG") == 0)
-        {
-            g_slogCfg.nErrLog = atoi(sArg);
-        }
-        else if (strcmp(sName, "PRETTYLOG") == 0)
-        {
-            g_slogCfg.nPretty = atoi(sArg);
-        }
-        else if (strcmp(sName, "FILESTAMP") == 0)
-        {
-            g_slogCfg.nFileStamp = atoi(sArg);
-        }
-    }
-
-    fclose(pFile);
-    return 1;
+    slog_lock(&g_slog);
+    g_slog.slogConfig.nFlags |= eFlag;
+    slog_unlock(&g_slog);
 }
 
-void slog(int nLevel, int nFlag, const char *pMsg, ...)
+void slog_disable(SLOG_FLAGS_E eFlag)
 {
-    slog_sync_lock();
-
-    if (g_slogCfg.nSilent && 
-        (nFlag == SLOG_DEBUG || 
-        nFlag == SLOG_LIVE)) 
-    {
-        slog_sync_unlock();
-        return;
-    }
-
-    char sInput[MAXMSG];
-    memset(sInput, 0, sizeof(sInput));
-
-    va_list args;
-    va_start(args, pMsg);
-    vsprintf(sInput, pMsg, args);
-    va_end(args);
-
-    /* Check logging levels */
-    if(!nLevel || nLevel <= g_slogCfg.nLogLevel || nLevel <= g_slogCfg.nFileLevel)
-    {
-        SlogDate date;
-        slog_get_date(&date);
-
-        char sMessage[MAXMSG];
-        memset(sMessage, 0, sizeof(sMessage));
-
-        slog_prepare_output(sInput, &date, nFlag, 1, sMessage, sizeof(sMessage));
-        if (nLevel <= g_slogCfg.nLogLevel) printf("%s\n", sMessage);
-
-        /* Save log in the file */
-        if ((g_slogCfg.nToFile && nLevel <= g_slogCfg.nFileLevel) || 
-            (g_slogCfg.nErrLog && (nFlag == (SLOG_ERROR | SLOG_PANIC | SLOG_FATAL))))
-        {
-            if (g_slogCfg.nPretty)
-            {
-                memset(sMessage, 0, sizeof(sMessage));
-                slog_prepare_output(sInput, &date, nFlag, 0, sMessage, sizeof(sMessage));
-            }
-
-            slog_to_file(sMessage, g_slogCfg.sFileName, &date);
-        }
-    }
-
-    slog_sync_unlock();
+    slog_lock(&g_slog);
+    g_slog.slogConfig.nFlags &= ~eFlag;
+    slog_unlock(&g_slog);
 }
 
-void slog_config_get(SlogConfig *pCfg)
+void slog_print(SLOG_FLAGS_E eFlag, uint8_t nNewLine, const char *pMsg, ...)
 {
-    slog_sync_lock();
-    memset(pCfg->sFileName, 0, sizeof(pCfg->sFileName));
-    strcpy(pCfg->sFileName, g_slogCfg.sFileName);
+    slog_lock(&g_slog);
 
-    pCfg->nFileStamp = g_slogCfg.nFileStamp;
-    pCfg->nFileLevel = g_slogCfg.nFileLevel;
-    pCfg->nLogLevel = g_slogCfg.nLogLevel;
-    pCfg->nToFile = g_slogCfg.nToFile;
-    pCfg->nPretty = g_slogCfg.nPretty;
-    pCfg->nTdSafe = g_slogCfg.nTdSafe;
-    pCfg->nErrLog = g_slogCfg.nErrLog;
-    pCfg->nSilent = g_slogCfg.nSilent;
-    slog_sync_unlock();
-}
-
-void slog_config_set(SlogConfig *pCfg)
-{
-    slog_sync_lock();
-    memset(g_slogCfg.sFileName, 0, sizeof(g_slogCfg.sFileName));
-    strcpy(g_slogCfg.sFileName, pCfg->sFileName);
-
-    g_slogCfg.nFileStamp = pCfg->nFileStamp;
-    g_slogCfg.nFileLevel = pCfg->nFileLevel;
-    g_slogCfg.nLogLevel = pCfg->nLogLevel;
-    g_slogCfg.nToFile = pCfg->nToFile;
-    g_slogCfg.nPretty = pCfg->nPretty;
-    g_slogCfg.nTdSafe = pCfg->nTdSafe;
-    g_slogCfg.nErrLog = pCfg->nErrLog;
-    g_slogCfg.nSilent = pCfg->nSilent;
-
-    if (g_slogCfg.nTdSafe && !g_slogCfg.nSync)
+    if ((SLOG_FLAGS_CHECK(g_slog.slogConfig.nFlags, eFlag)) &&
+       (g_slog.slogConfig.nToScreen || g_slog.slogConfig.nToFile))
     {
-        slog_sync_init();
-        slog_sync_lock();
-    }
-    else if (!g_slogCfg.nTdSafe && g_slogCfg.nSync)
-    {
-        g_slogCfg.nTdSafe = 1;
-        slog_sync_unlock();
-        slog_sync_destroy();
+        slog_get_date(&g_slog.slogDate);
+        char sInput[SLOG_MESSAGE_MAX];
+
+        va_list args;
+        va_start(args, pMsg);
+        vsnprintf(sInput, sizeof(sInput), pMsg, args);
+        va_end(args);
+
+        char sOutput[SLOG_MESSAGE_MAX + SLOG_DATE_MAX + (SLOG_TAG_MAX * 3)];
+        slog_create_output(sOutput, sizeof(sOutput), sInput, eFlag);
+        slog_display_output(sOutput, nNewLine);
     }
 
-    slog_sync_unlock();
+    slog_unlock(&g_slog);
 }
 
-void slog_init(const char* pName, const char* pConf, int nLogLevel, int nTdSafe)
+void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
     /* Set up default values */
-    memset(g_slogCfg.sFileName, 0, sizeof(g_slogCfg.sFileName));
-    strcpy(g_slogCfg.sFileName, pName);
+    SLogConfig *pConfig = &g_slog.slogConfig;
+    pConfig->eColorFormat = SLOG_COLOR_TAG;
+    pConfig->sFileName[0] = 0;
+    pConfig->sFilePath[0] = 0;
+    pConfig->nTraceTid = 0;
+    pConfig->nToScreen = 1;
+    pConfig->nToFile = 0;
+    pConfig->nFlush = 0;
+    pConfig->nFlags = nFlags;
 
-    g_slogCfg.nLogLevel = nLogLevel;
-    g_slogCfg.nTdSafe = nTdSafe;
-    g_slogCfg.nFileStamp = 1;
-    g_slogCfg.nFileLevel = 0;
-    g_slogCfg.nErrLog = 0;
-    g_slogCfg.nSilent = 0;
-    g_slogCfg.nToFile = 0;
-    g_slogCfg.nPretty = 0;
-    g_slogCfg.nSync = 0;
+    if (pName != NULL) snprintf(pConfig->sFileName, 
+        sizeof(pConfig->sFileName)-1, "%s", pName);
 
-    /* Init mutex sync */
-    slog_sync_init();
+    /* Initialize mutex */
+    g_slog.nTdSafe = nTdSafe;
+    slog_sync_init(&g_slog);
+}
 
-    /* Parse config file */
-    slog_parse_config(pConf);
+void slog_destroy()
+{
+    if (!g_slog.nTdSafe) return;
+    pthread_mutex_destroy(&g_slog.mutex);
+    g_slog.nTdSafe = 0;
 }
