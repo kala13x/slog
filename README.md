@@ -105,6 +105,47 @@ slgCfg.nToFile = 1;
 slog_config_set(&slgCfg);
 ```
 
+### Coloring
+There is a color control possibility to colorize whole line, just tag or disable coloring at all.
+```c
+SLogConfig slgCfg;
+slog_config_get(&slgCfg);
+
+/* Colorize tags only */
+slgCfg.eColorFormat = SLOG_COLOR_TAG;
+slog_config_set(&slgCfg);
+slog_debug("Message with colorized tag");
+
+/* Colorize full line */
+slgCfg.eColorFormat = SLOG_COLOR_FULL;
+slog_config_set(&slgCfg);
+slog_debug("Message with full line color");
+
+/* Disable coloring at all */ 
+slgCfg.eColorFormat = SLOG_COLOR_DISABLE;
+slog_config_set(&slgCfg);
+slog_debug("Message without coloring");
+```
+
+### Thread tracing
+You can trace thread IDs and display in output if additional information is needed.
+
+Here is an example:
+```c
+SLogConfig slgCfg;
+slog_config_get(&slgCfg);
+slgCfg.nTraceTid = 1;
+slog_config_set(&slgCfg);
+
+slog_debug("Message with thread id");
+```
+
+With expected output to be:
+```
+(15203) 2017.01.22-19:03:17.03 - <debug> Message with thread id.
+```
+where `15203` is thread identifier from which the message was printed.
+
 ### Logging flags
 Slog has its logging flags to print something with status code.
 
