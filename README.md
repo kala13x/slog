@@ -54,7 +54,7 @@ You must deinitialize slog only if the thread safety flag is greater than zero (
 slog_destroy();
 ```
 
-Function destrois the mutex attribute and sets thread safety flag to zero.
+Function destroys the mutex attribute and sets thread safety flag to zero.
 
 ### Configuration
 
