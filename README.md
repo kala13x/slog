@@ -128,7 +128,7 @@ slog_debug("Message without coloring");
 ```
 
 ### Thread tracing
-You can trace thread IDs and display in output if additional information is needed.
+You can trace thread IDs and display in output if additional information is needed while debugging threads.
 
 Here is an example:
 ```c
