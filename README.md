@@ -1,8 +1,8 @@
-## slog Logging Library - 1.8 build 22
+## SLog Logging Library - 1.8 build 22
 SLog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
 
 ### Installation
-Installation is possible with `Makefile`
+Installation is possible with `Makefile` (cmake list is also included in the project).
 ```
 git clone https://github.com/kala13x/slog.git
 cd slog
@@ -11,35 +11,46 @@ sudo make install
 ```
 
 ### Usage
-If you want to use slog in your C/C++ application, include `slog.h` header in your source file and link slog library with `-lslog` linker flag while compiling your project. See example directory for more informations.
+If you want to use slog in your C/C++ application, include `slog.h` header in your source file and link slog library with `-lslog` linker flag while compiling your project. See example directory for more information.
 
+### Logging flags
+SLog has it's own logging flags to control log level and to display messages with tagged and colorized output.
+
+- `SLOG_NOTAG`
+- `SLOG_LIVE`
+- `SLOG_INFO`
+- `SLOG_WARN`
+- `SLOG_DEBUG`
+- `SLOG_TRACE`
+- `SLOG_ERROR`
+- `SLOG_FATAL`
 
 ### Simple API
-At first you should initialize slog
+At first you should initialize slog:
 ```c
-int nFlags = SLOG_NOTAG | SLOG_ERROR;
-int nFlags |= SLOG_WARN | SLOG_FATAL;
+int nEnabledLevels = SLOG_NOTAG | SLOG_ERROR;
+nEnabledLevels |= SLOG_WARN | SLOG_FATAL;
 
 /* Setting SLOG_FLAGS_ALL will activate all logging levels */
-// nFlags = SLOG_FLAGS_ALL;
+// nEnabledLevels = SLOG_FLAGS_ALL;
 
-slog_init("logfile", nFlags, 0);
+slog_init("logfile", nEnabledLevels, 0);
 ```
 
- - First argument is file name where log will be saved.
- - Second argument is logging flags which are allowed to print. 
- - Third argument is thread safety flag *(1 enabled, 0 disabled)*.
+ - First argument is the name of the file where we want to save logs.
+ - Second argument is the logging level flags which are allowed to print. 
+ - Third argument is a thread safety flag *(1 enabled, 0 disabled)*.
 
-If thread safety flag is greater than zero, function initializes mutex and evety other call of any slog function is protected by mutex locks.
+If thread safety flag is greater than zero, function initializes mutex and every other call of any slog function is protected by lock.
 
-With the above slog initialization example only errors, warnings and not tagged messages will be printed because there is no other flags activated.
-You can also activate or deactivate any logging level after slog initialization with `slog_enable()` and `slog_disable()` functions.
+With the above slog initialization example only errors, warnings and not tagged messages will be displayed because there are no other flags activated.
+We can also activate or deactivate any logging level after slog initialization by setting the flag with `slog_enable()` and `slog_disable()` functions.
 
 ```c
 /* Enable all logging levels */
 slog_enable(SLOG_FLAGS_ALL);
 
-/* Disable trace level (trace logs will not be printed anymore) */
+/* Disable trace level (trace logs will not be displayed anymore) */
 slog_disable(SLOG_TRACE);
 
 /* Enable trace messages again */
@@ -49,29 +60,101 @@ slog_enable(SLOG_TRACE);
 slog_disable(SLOG_FLAGS_ALL);
 ```
 
-You must deinitialize slog only if the thread safety flag is greater than zero (nTdSafe > 0) while initialization.
+Deinitialization needed only if the thread safety flag is greater than zero (nTdSafe > 0) while initialization.
 ```c
 slog_destroy();
 ```
+Function destroys the mutex context and resets thread safety flag to zero.
 
-Function destroys the mutex attribute and sets thread safety flag to zero.
+
+### Print and log something in the file
+Here is an example on how use slog:
+```c
+slog("Simple message with time and date");
+```
+
+Slog ends strings automatically with the new line character `\n`. If you want to display output without adding new line character, you must use `slogwn()` function.
+```c
+slogwn("Simple message without new line character");
+```
+
+You can use old way logging function with a bit more control of parameters
+```c
+slog_print(SLOG_DEBUG, 0, "Simple debug message without new line character");
+```
+
+ - First argument is a log level flag of current message.
+ - Second argument is the flag to add new line character at the end of the output *(1 add, 0 don't add)*.
+ - Third argument is the formated string which we want to display in the output.
+
+*Output, taken from example directory:*
+
+![alt tag](https://github.com/kala13x/slog/blob/master/example/slog.png)
+
+#### Macros
+SLog has cleaner option to log messages without the need to provide the flag parameter. 
+
+Here are defined macros based on the logging levels.
+
+- `slog()`
+- `slogwn()`
+- `slog_live()`
+- `slog_info()`
+- `slog_warn()`
+- `slog_debug()`
+- `slog_error()`
+- `slog_trace()`
+- `slog_fatal()`
+
+Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
+
+Here is an example that logs a debug message:
+```c
+slog_debug("The %s contains between %d and %d billion stars and at least %d billion planets.", "Milky Way", 200, 400, 100);
+```
+
+In addition, there are several options to print the corresponding file name and line number where a slog macro was called. This rule follows the macros which relate to a fatal or trace flag, and shown bellow:
+
+- `slog_trace()`
+- `slog_fatal()`
+
+Display message with trace tag and print source location:
+```c
+slog_trace("Trace message trows source location.");
+```
+
+With expected output to be:
+```
+2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message trows source location.
+```
+
+We can also trace source location wothout any output message:
+```c
+slog_trace();
+```
+
+With expected output to be:
+```
+2017.01.22-19:03:17.03 - <trace> [example.c:72]
+```
 
 ### Configuration
 
-Since version 1.8.* config file is not supported anymore but there is a way to change configuration parameters of already initialized slog.
+Since version 1.8.* config file is no longer supported by slog but there is a way to change configuration parameters at runtime.
 
+Variables of `SLogConfig` structure:
 Parameter    | Type              | Default        | Description
--------------|-------------------|----------------|-------------------------------
+-------------|-------------------|----------------|---------------------------
 sFileName    | char array        | "slog"         | Output file name for logs.
 sFilePath    | char array        | "./"           | Output file path for logs.
-eColorFormat | SLOG_COLOR_FMT_E  | SLOG_COLOR_TAG | Output color format control.
-nTraceTid    | uint8_t           | 0 (disabled)   | Trace thread ID and display in output
-nToScreen    | uint8_t           | 1              | Enable screen logging.
-nToFile      | uint8_t           | 0 (disabled)   | Enable file logging.
+eColorFormat | SLOG_COLOR_FMT_E  | SLOG_COLOR_TAG | Output coloring format control.
+nTraceTid    | uint8_t           | 0 (disabled)   | Trace thread ID and display in output.
+nToScreen    | uint8_t           | 1 (enabled)    | Enable or disable screen logging.
+nToFile      | uint8_t           | 0 (disabled)   | Enable or disable file logging.
 nFlush       | uint8_t           | 0 (disabled)   | Flush stdout after screen log.
 nFlags       | uint16_t          | 0 (no logs)    | Allowed log level flags.
 
-Any of those parameters above can be changed at the runtime with the `slog_config_set()` function.
+Any of those parameters above can be changed at runtime with the `slog_config_set()` function.
 
 Example:
 ```c
@@ -106,12 +189,12 @@ slog_config_set(&slgCfg);
 ```
 
 ### Coloring
-There is a color control possibility to colorize whole line, just tag or disable coloring at all.
+SLog also has coloring control possibility to colorize whole line, just tag or disable coloring at all.
 ```c
 SLogConfig slgCfg;
 slog_config_get(&slgCfg);
 
-/* Colorize tags only */
+/* Colorize only tags */
 slgCfg.eColorFormat = SLOG_COLOR_TAG;
 slog_config_set(&slgCfg);
 slog_debug("Message with colorized tag");
@@ -128,7 +211,7 @@ slog_debug("Message without coloring");
 ```
 
 ### Thread tracing
-You can trace thread IDs and display in output if additional information is needed while debugging threads.
+If you are looking for additional information about threads while debugging, you can trace thread IDs and display in the output.
 
 Here is an example:
 ```c
@@ -144,98 +227,14 @@ With expected output to be:
 ```
 (15203) 2017.01.22-19:03:17.03 - <debug> Message with thread id.
 ```
-where `15203` is thread identifier from which the message was printed.
-
-### Logging flags
-Slog has its logging flags to print something with status code.
-
-- `SLOG_NOTAG`
-- `SLOG_LIVE`
-- `SLOG_INFO`
-- `SLOG_WARN`
-- `SLOG_DEBUG`
-- `SLOG_TRACE`
-- `SLOG_ERROR`
-- `SLOG_FATAL`
-
-### Print and log something
-Here is an example on how use slog:
-```c
-slog("Simple test message");
-```
-
-Slog ends strings automatically with new line character `\n`. If you want to display output without adding new line character, you must use `slogwn()` function.
-```c
-slogwn("Simple test message without new line character");
-```
-
-You can use old way logging function with a bit more control of parameters
-```c
-slog_print(SLOG_DEBUG, 0, "Simple test message without new line character");
-```
-
- - First argument is a log level flag of current message.
- - Second argument is a flag to add new line character at the end of the output. 
- - Third argument is a formated string which will be displayed in the output.
-
-*Output, taken from example directory:*
-
-![alt tag](https://github.com/kala13x/slog/blob/master/example/slog.png)
-
-#### UPDATE
-From version 1.5 we provide a cleaner option to generate errors without the need to provide the flag parameter. 
-
-Here are defined macros based on the logging flags.
-
-- `slog()`
-- `slogwn()`
-- `slog_live()`
-- `slog_info()`
-- `slog_warn()`
-- `slog_debug()`
-- `slog_error()`
-- `slog_trace()`
-- `slog_fatal()`
-
-Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
-
-Here is an example that logs a debug message:
-```c
-slog_debug("The %s contains between %d and %d billion stars and at least %d billion planets.  ", "Milky Way", 200, 400, 100);
-```
-
-In addition, we added the option to print the corresponding file name and line number where a slog macro was called. This rule follows the macros which relate to a critical or trace flag, and shown bellow:
-
-- `slog_trace()`
-- `slog_fatal()`
-
-Basic example:
-```c
-/* Log and print something fatal. */
-slog_trace("Trace message trows source location.");
-```
-
-With expected output to be:
-```
-2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message trows source location.
-```
-
-You can also trace source location wothout any output message:
-```c
-slog_trace();
-```
-
-With expected output to be:
-```
-2017.01.22-19:03:17.03 - <trace> [example.c:72]
-```
+Where `15203` is a thread identifier from which the message was printed.
 
 ### Version
-`slog_version()` is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build date and etc.
+`slog_version()` is a function which returns version of slog. If argument is more than zero function returns only version and build number. Otherwise it returns full version with build date.
 
 Usage:
 ```c
-printf("slog Version: %s", slog_version(1));
+printf("slog Version: %s", slog_version(0));
 ```
 
 Output will be something like that:
