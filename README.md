@@ -19,6 +19,10 @@ At first you should initialize slog
 ```c
 int nFlags = SLOG_NOTAG | SLOG_ERROR;
 int nFlags |= SLOG_WARN | SLOG_FATAL;
+
+/* Setting SLOG_FLAGS_ALL will activate all logging levels */
+// nFlags = SLOG_FLAGS_ALL;
+
 slog_init("logfile", nFlags, 0);
 ```
 
