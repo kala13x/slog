@@ -50,10 +50,10 @@ slog_disable(SLOG_FLAGS_ALL);
 ```
 
 You must deinitialize slog only if the thread safety flag is greater than zero (nTdSafe > 0) while initialization.
-
 ```c
 slog_destroy();
 ```
+
 Function destrois the mutex attribute and sets thread safety flag to zero.
 
 ### Configuration
@@ -128,7 +128,7 @@ Slog ends strings automatically with new line character `\n`. If you want to dis
 slogwn("Simple test message without new line character");
 ```
 
-You can use old way logging function with a bit more control of parameters */
+You can use old way logging function with a bit more control of parameters
 ```c
 slog_print(SLOG_DEBUG, 0, "Simple test message without new line character");
 ```
@@ -144,7 +144,7 @@ slog_print(SLOG_DEBUG, 0, "Simple test message without new line character");
 #### UPDATE
 From version 1.5 we provide a cleaner option to generate errors without the need to provide the flag parameter. 
 
-We defined macros based on the warning flags.
+Here are defined macros based on the logging flags.
 
 - `slog()`
 - `slogwn()`
@@ -158,8 +158,7 @@ We defined macros based on the warning flags.
 
 Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
 
-Bellow we provide an example that logs a debug message:
-
+Here is an example that logs a debug message:
 ```c
 slog_debug("The %s contains between %d and %d billion stars and at least %d billion planets.  ", "Milky Way", 200, 400, 100);
 ```
@@ -174,18 +173,21 @@ Basic example:
 /* Log and print something fatal. */
 slog_trace("Trace message trows source location.");
 ```
-With expected output to be:
 
-    2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message trows source location.
+With expected output to be:
+```
+2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message trows source location.
+```
 
 You can also trace source location wothout any output message:
-
 ```c
 slog_trace();
 ```
-With expected output to be:
 
-    2017.01.22-19:03:17.03 - <trace> [example.c:72]
+With expected output to be:
+```
+2017.01.22-19:03:17.03 - <trace> [example.c:72]
+```
 
 ### Version
 `slog_version()` is a function which returns version of slog. If argument is 1, it returns only version and build number. Otherwise it returns full version such as Build number, build date and etc.
@@ -201,7 +203,7 @@ slog Version: 1.5 build 1 (Jan 22 2017)
 ```
 
 ### Output
-Here is example output messages of slog
+Here is example output messages of slog:
 ```
 2020.12.13-19:41:41.27 - Simple message without anything
 2020.12.13-19:41:41.27 - Simple message with our own new line character
