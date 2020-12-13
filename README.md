@@ -87,10 +87,6 @@ slog_print(SLOG_DEBUG, 0, "Simple debug message without new line character");
  - Second argument is the flag to add new line character at the end of the output *(1 add, 0 don't add)*.
  - Third argument is the formated string which we want to display in the output.
 
-*Output, taken from example directory:*
-
-![alt tag](https://github.com/kala13x/slog/blob/master/example/slog.png)
-
 #### Macros
 SLog has cleaner option to log messages without the need to provide the flag parameter. 
 
@@ -108,7 +104,7 @@ Here are defined macros based on the logging levels.
 
 Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
 
-Here is an example that logs a debug message:
+Here is an example that logs a formated debug message:
 ```c
 slog_debug("The %s contains between %d and %d billion stars and at least %d billion planets.", "Milky Way", 200, 400, 100);
 ```
@@ -137,6 +133,10 @@ With expected output to be:
 ```
 2017.01.22-19:03:17.03 - <trace> [example.c:72]
 ```
+
+*Output, taken from example directory:*
+
+![alt tag](https://github.com/kala13x/slog/blob/master/example/slog.png)
 
 ### Configuration
 
@@ -234,16 +234,16 @@ Where `15203` is a thread identifier from which the message was printed.
 
 Usage:
 ```c
-printf("slog Version: %s", slog_version(0));
+printf("slog version: %s", slog_version(0));
 ```
 
 Output will be something like that:
 ```
-slog Version: 1.5 build 1 (Jan 22 2017)
+slog version: 1.8 build 22 (Dec 14 2020)
 ```
 
 ### Output
-Here is example output messages of slog:
+Here is en example of log file context created by slog:
 ```
 2020.12.13-19:41:41.27 - Simple message without anything
 2020.12.13-19:41:41.27 - Simple message with our own new line character
