@@ -55,19 +55,7 @@ Destrois the mutex attribute and sets thread safe flag to zero.
 
 Scinse version 1.8.* config file is not supported anymore but there is a way to change configuration parameters of already initialized slog.
 
-Parameter    | Default        | Variable type     | Description
--------------|----------------|-------------------|------------
-sFileName    | "slog"         | char array        | Output file name for logs.
-sFilePath    | "./"           | char array        | Output file path for logs.
-eColorFormat | SLOG_COLOR_TAG | SLOG_COLOR_FMT_E  | Output color format control.
-nTraceTid    | 0              | uint8_t           | Trace thread ID and display in output
-nToScreen    | 1              | uint8_t           | Enable screen logging.
-nToFile      | 0              | uint8_t           | Enable file logging.
-nFlush       | 0              | uint8_t           | Flush stdout after screen log.
-nFlags       | 0              | uint16_t          | Allowed log level flags.
-
-
-Parameter    | Variable type     | Default        | Description
+Parameter    | Type              | Default        | Description
 -------------|-------------------|----------------|-------------------------------
 sFileName    | char array        | "slog"         | Output file name for logs.
 sFilePath    | char array        | "./"           | Output file path for logs.
