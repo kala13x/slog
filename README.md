@@ -114,14 +114,24 @@ Slog has its logging flags to print something with status code.
 - `SLOG_FATAL`
 
 ### Print and log something
-Here is an example on how use slog.
+Here is an example on how use slog:
 ```c
 slog("Simple test message");
 ```
-- Slog ends strings automatically with new line character `\n`. If you want to display output without adding new line character, you must use slogwn() function.
+
+Slog ends strings automatically with new line character `\n`. If you want to display output without adding new line character, you must use `slogwn()` function.
 ```c
 slogwn("Simple test message without new line character");
 ```
+
+You can use old way logging function with a bit more control of parameters */
+```c
+slog_print(SLOG_DEBUG, 0, "Simple test message without new line character");
+```
+
+ - First argument is a log level flag of current message.
+ - Second argument is a flag to add new line character at the end of the output. 
+ - Third argument is a formated string which will be displayed in the output.
 
 *Output, taken from example directory:*
 
@@ -142,7 +152,7 @@ We defined macros based on the warning flags.
 - `slog_trace()`
 - `slog_fatal()`
 
-Each macro take A formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
+Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
 
 Bellow we provide an example that logs a debug message:
 
