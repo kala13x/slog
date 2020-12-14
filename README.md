@@ -1,8 +1,8 @@
 ## SLog Logging Library - 1.8 build 22
-SLog is simple and thread safe logging library for C/C++. Software is written for educational purposes and is distributed in the hope that it will be useful for anyone interested in this field.
+SLog is simple and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters and many more.
 
 ### Installation
-Installation is possible with `Makefile` (cmake list is also included in the project).
+Installation is possible with `Makefile` (CMake lists is also included in the project).
 ```
 git clone https://github.com/kala13x/slog.git
 cd slog
@@ -14,7 +14,7 @@ sudo make install
 If you want to use slog in your C/C++ application, include `slog.h` header in your source file and link slog library with `-lslog` linker flag while compiling your project. See example directory for more information.
 
 ### Logging flags
-SLog has it's own logging flags to control log level and to display messages with tagged and colorized output.
+SLog has it's own logging flags to control log levels and to display messages with tagged and colorized output.
 
 - `SLOG_NOTAG`
 - `SLOG_LIVE`
@@ -43,8 +43,7 @@ slog_init("logfile", nEnabledLevels, 0);
 
 If thread safety flag is greater than zero, function initializes mutex and every other call of any slog function is protected by lock.
 
-With the above slog initialization example only errors, warnings and not tagged messages will be displayed because there are no other flags activated.
-We can also activate or deactivate any logging level after slog initialization by setting the flag with `slog_enable()` and `slog_disable()` functions.
+With the above slog initialization example only errors, warnings and not tagged messages will be displayed because there are no other flags activated during initializarion. We can also activate or deactivate any logging level after slog initialization by setting the flag with `slog_enable()` and `slog_disable()` functions.
 
 ```c
 /* Enable all logging levels */
@@ -73,7 +72,7 @@ Here is an example on how use slog:
 slog("Simple message with time and date");
 ```
 
-Slog ends strings automatically with the new line character `\n`. If you want to display output without adding new line character, you must use `slogwn()` function.
+SLog ends strings automatically with the new line character `\n`. If you want to display output without adding new line character, you must use `slogwn()` function.
 ```c
 slogwn("Simple message without new line character");
 ```
@@ -116,12 +115,12 @@ In addition, there are several options to print the corresponding file name and 
 
 Display message with trace tag and print source location:
 ```c
-slog_trace("Trace message trows source location.");
+slog_trace("Trace message throws source location.");
 ```
 
 With expected output to be:
 ```
-2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message trows source location.
+2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message throws source location.
 ```
 
 We can also trace source location wothout any output message:
@@ -210,7 +209,7 @@ slog_config_set(&slgCfg);
 slog_debug("Message without coloring");
 ```
 
-### Thread tracing
+### Thread ID tracing
 If you are looking for additional information about threads while debugging, you can trace thread IDs and display in the output.
 
 Here is an example:
@@ -230,7 +229,7 @@ With expected output to be:
 Where `15203` is a thread identifier from which the message was printed.
 
 ### Version
-`slog_version()` is a function which returns version of slog. If argument is more than zero function returns only version and build number. Otherwise it returns full version with build date.
+There are two ways to get and print slog version with this library. Function `slog_version()` returns char pointer of static array where slog version string is located. If argument is more than zero function returns string with only version and build number. Otherwise it returns full version format with build date.
 
 Usage:
 ```c
@@ -243,7 +242,7 @@ slog version: 1.8 build 22 (Dec 14 2020)
 ```
 
 ### Output
-Here is en example of log file context created by slog:
+Here is en example of the log file context created by slog:
 ```
 2020.12.13-19:41:41.27 - Simple message without anything
 2020.12.13-19:41:41.27 - Simple message with our own new line character
