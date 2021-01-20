@@ -33,7 +33,7 @@
 #include <time.h>
 #include "slog.h"
 
-#ifndef DARWIN
+#if !defined(DARWIN) && !defined(WIN32)
 #include <syscall.h>
 #endif
 #include <sys/time.h>
@@ -145,7 +145,11 @@ static void slog_get_date(SLogDate *pDate)
 {
     struct tm timeinfo;
     time_t rawtime = time(NULL);
+    #ifdef WIN32
+    localtime_s(&timeinfo, &rawtime);
+    #else
     localtime_r(&rawtime, &timeinfo);
+    #endif
 
     pDate->nYear = timeinfo.tm_year + 1900;
     pDate->nMonth = timeinfo.tm_mon + 1;
@@ -167,7 +171,7 @@ static void slog_create_tag( char *pOut, size_t nSize, SLOG_FLAGS_E eFlag, const
 
 static uint32_t slog_get_tid()
 {
-#ifdef DARWIN
+#if defined(DARWIN) || defined(WIN32)
     return (uint32_t)pthread_self();
 #else
     return syscall(__NR_gettid);
