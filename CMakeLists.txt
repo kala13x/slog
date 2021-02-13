@@ -8,7 +8,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(RT REQUIRED)
 
-add_compile_options(-Wall)
+add_compile_options(-Wall -O2)
 
 add_library(slog STATIC src/slog.c src/slog.h)
 
