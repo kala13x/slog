@@ -173,10 +173,12 @@ SLogConfig slgCfg;
 
 /* Setup configuration parameters */
 slgCfg.eColorFormat = SLOG_COLOR_TAG;
+slgCfg.eDateControl = SLOG_TIME_ONLY;
 strcpy(slgCfg.sFileName, "myproject");
 strcpy(slgCfg.sFilePath, "./logs/");
 slgCfg.nTraceTid = 1;
 slgCfg.nToScreen = 1;
+slgCfg.nUseHeap = 0;
 slgCfg.nToFile = 0;
 slgCfg.nFlush = 1;
 slgCfg.nFlags = SLOG_FLAGS_ALL;
