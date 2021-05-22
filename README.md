@@ -1,4 +1,4 @@
-## SLog Logging Library - 1.8 build 22
+## SLog Logging Library - 1.8 build 23
 SLog is simple and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters and many more.
 
 ### Installation
@@ -101,6 +101,16 @@ Here are defined macros based on the logging levels.
 - `slog_trace()`
 - `slog_fatal()`
 
+Even shorter macros:
+
+- `slogl()` same as `slog_live()`
+- `slogi()` same as `slog_info()`
+- `slogw()` same as `slog_warn()`
+- `slogd()` same as `slog_debug()`
+- `sloge()` same as `slog_error()`
+- `slogt()` same as `slog_trace()`
+- `slogf()` same as `slog_fatal()`
+
 Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
 
 Here is an example that logs a formated debug message:
@@ -147,8 +157,10 @@ Parameter    | Type              | Default        | Description
 sFileName    | char array        | "slog"         | Output file name for logs.
 sFilePath    | char array        | "./"           | Output file path for logs.
 eColorFormat | SLOG_COLOR_FMT_E  | SLOG_COLOR_TAG | Output coloring format control.
+eDateControl | SLOG_DATE_CTRL_E  | SLOG_TIME_ONLY | Time and date control in log output.
 nTraceTid    | uint8_t           | 0 (disabled)   | Trace thread ID and display in output.
 nToScreen    | uint8_t           | 1 (enabled)    | Enable or disable screen logging.
+nUseHeap     | uint8_t           | 0 (disabled)   | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)   | Enable or disable file logging.
 nFlush       | uint8_t           | 0 (disabled)   | Flush stdout after screen log.
 nFlags       | uint16_t          | 0 (no logs)    | Allowed log level flags.
@@ -187,6 +199,17 @@ slgCfg.nToFile = 1;
 slog_config_set(&slgCfg);
 ```
 
+### Dynamic allocation
+If output message is larger than slog default message limit (8196 bytes) there is a possibility to enable dynamic allocation and use heap for output messages:
+```c
+SLogConfig slgCfg;
+slog_config_get(&slgCfg);
+slgCfg.nUseHeap = 1;
+slog_config_set(&slgCfg);
+
+slog_debug("Your too big output message here");
+```
+
 ### Coloring
 SLog also has coloring control possibility to colorize whole line, just tag or disable coloring at all.
 ```c
@@ -207,6 +230,28 @@ slog_debug("Message with full line color");
 slgCfg.eColorFormat = SLOG_COLOR_DISABLE;
 slog_config_set(&slgCfg);
 slog_debug("Message without coloring");
+```
+
+### Time and date
+SLog gives you possibility to control time and date format in log output.
+```c
+SLogConfig slgCfg;
+slog_config_get(&slgCfg);
+
+/* Disable time and date in output */
+slgCfg.eDateControl = SLOG_TIME_DISABLE;
+slog_config_set(&slgCfg);
+slog_debug("Message without time and date");
+
+/* Enable only time in output */
+slgCfg.eDateControl = SLOG_TIME_ONLY;
+slog_config_set(&slgCfg);
+slog_debug("Message with time only");
+
+/* Enable date + time in output */ 
+slgCfg.eDateControl = SLOG_DATE_FULL;
+slog_config_set(&slgCfg);
+slog_debug("Message with time and date");
 ```
 
 ### Thread ID tracing
@@ -244,19 +289,22 @@ slog version: 1.8 build 22 (Dec 14 2020)
 ### Output
 Here is en example of the log file context created by slog:
 ```
-2020.12.13-19:41:41.27 - Simple message without anything
-2020.12.13-19:41:41.27 - Simple message with our own new line character
-2020.12.13-19:41:41.27 - <debug> Old way printed debug message with our own new line character
-2020.12.13-19:41:41.27 - <error> Old way printed error message with auto new line character
-2020.12.13-19:41:41.27 - <warn> Warning message without variable
-2020.12.13-19:41:41.27 - <info> Info message with string variable: test string
-2020.12.13-19:41:41.27 - <note> Note message with integer variable: 69
-(15203) 2020.12.13-19:41:41.27 - <debug> Debug message with enabled thread id tracing
-(15203) 2020.12.13-19:41:41.27 - <error> Error message with errno string: Success
-(15203) 2020.12.13-19:41:41.27 - <debug> Debug message in the file with full line color enabled
-(15203) 2020.12.13-19:41:41.27 - <trace> [example.c:95] Trace message throws source location
-(15203) 2020.12.13-19:41:41.27 - <fatal> [example.c:98] Fatal message also throws source location
-(15203) 2020.12.13-19:41:41.28 - <debug> Disabled output coloring
-(15203) 2020.12.13-19:41:41.28 - <trace> [example.c:108] 
-(15203) 2020.12.13-19:41:41.28 - <debug> Above we traced source location without output message
+Simple message without anything
+02:11:34.36 - Simple message with time only
+02:11:34.36 - Simple message with our own new line character
+02:11:34.36 - <debug> Old way printed debug message with our own new line character
+02:11:34.36 - <error> Old way printed error message with auto new line character
+02:11:34.36 - <warn> Warning message without variable
+02:11:34.36 - <info> Info message with string variable: test string
+02:11:34.36 - <note> Note message with integer variable: 69
+(8180) 02:11:34.36 - <debug> Debug message with enabled thread id tracing
+(8180) 02:11:34.36 - <error> Error message with errno string: Success
+(8180) 02:11:34.36 - <debug> Debug message in the file with full line color enabled
+(8180) 02:11:34.36 - <trace> [example.c:105] Trace message throws source location
+(8180) 02:11:34.36 - <fatal> [example.c:108] Fatal message also throws source location
+(8180) 2021.05.23-02:11:34.36 - <debug> Debug message with time and date
+(8180) 2021.05.23-02:11:34.36 - <debug> Disabled output coloring
+(8180) 2021.05.23-02:11:34.36 - <trace> [example.c:124] 
+(8180) 2021.05.23-02:11:34.36 - <debug> Above we traced source location without output message
+
 ```

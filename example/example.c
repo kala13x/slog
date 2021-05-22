@@ -37,9 +37,19 @@ int main()
 
     /* Initialize slog and allow only error and not tagged output */
     slog_init("example", nLogFlags, 0);
+    slog_config_get(&slgCfg);
+
+    /* Disable time and date in output */
+    slgCfg.eDateControl = SLOG_TIME_DISABLE;
+    slog_config_set(&slgCfg);
 
     /* Just simple log without anything (color, tag, thread id)*/
     slog("Simple message without anything");
+
+    /* Enable only time in output */
+    slgCfg.eDateControl = SLOG_TIME_ONLY;
+    slog_config_set(&slgCfg);
+    slog("Simple message with time only");
 
     /* Simple log without adding new line character at the end */
     slogwn("Simple message with our own new line character\n");
@@ -48,10 +58,10 @@ int main()
     slog_enable(SLOG_FLAGS_ALL);
 
     /* Old way logging function with debug tag and disabled new line from argument */
-    slog_print(SLOG_DEBUG, 0, "Old way printed debug message with our own new line character\n");
+    slog_display(SLOG_DEBUG, 0, "Old way printed debug message with our own new line character\n");
 
     /* Old way logging function with error tag and enabled new line from argument */
-    slog_print(SLOG_ERROR, 1, "Old way printed error message with %s", "auto new line character");
+    slog_display(SLOG_ERROR, 1, "Old way printed error message with %s", "auto new line character");
 
     /* Warning message */
     slog_warn("Warning message without variable");
@@ -97,6 +107,12 @@ int main()
     /* Fatal error message */
     slog_fatal("Fatal message also throws source location");
 
+    /* Enable date + time in output */ 
+    slog_config_get(&slgCfg);
+    slgCfg.eDateControl = SLOG_DATE_FULL;
+    slog_config_set(&slgCfg);
+    slog_debug("Debug message with time and date");
+
     /* Disable output coloring*/
     slog_config_get(&slgCfg);
     slgCfg.eColorFormat = SLOG_COLOR_DISABLE;
@@ -106,7 +122,6 @@ int main()
 
     /* Just throw source location without output message */
     slog_trace();
-
     slog_debug("Above we traced source location without output message");
 
     return 0;
