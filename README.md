@@ -256,6 +256,13 @@ slog_config_set(&slgCfg);
 slog_debug("Message with time and date");
 ```
 
+Example output:
+```
+Message without time and date
+02:11:33.36 - <debug> Message with time only
+2021.05.23-02:11:34.36 - <debug> Message with time and date
+```
+
 ### Thread ID tracing
 If you are looking for additional information about threads while debugging, you can trace thread IDs and display in the output.
 
