@@ -46,16 +46,6 @@
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
 #endif
 
-typedef struct SLogDate {
-    uint16_t nYear;
-    uint8_t nMonth;
-    uint8_t nDay;
-    uint8_t nHour;
-    uint8_t nMin;
-    uint8_t nSec;
-    uint8_t nUsec;
-} slog_date_t;
-
 typedef struct slog_context_t_ {
     unsigned int nTdSafe:1;
     pthread_mutex_t mutex;
@@ -138,14 +128,14 @@ static const char* slog_get_color(SLOG_FLAGS_E eFlag)
     return SLOG_CLR_NORMAL;
 }
 
-static uint8_t slog_get_usec()
+uint8_t slog_get_usec()
 {
     struct timeval tv;
     if (gettimeofday(&tv, NULL) < 0) return 0;
     return (uint8_t)(tv.tv_usec / 10000);
 }
 
-static void slog_get_date(slog_date_t *pDate) 
+void slog_get_date(slog_date_t *pDate)
 {
     struct tm timeinfo;
     time_t rawtime = time(NULL);

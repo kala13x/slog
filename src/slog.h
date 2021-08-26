@@ -65,6 +65,19 @@ extern "C" {
 #define SLOG_FLAGS_CHECK(c, f) (((c) & (f)) == (f))
 #define SLOG_FLAGS_ALL      255
 
+typedef struct SLogDate {
+    uint16_t nYear;
+    uint8_t nMonth;
+    uint8_t nDay;
+    uint8_t nHour;
+    uint8_t nMin;
+    uint8_t nSec;
+    uint8_t nUsec;
+} slog_date_t;
+
+uint8_t slog_get_usec();
+void slog_get_date(slog_date_t *pDate);
+
 /* Log level flags */
 typedef enum
 {
