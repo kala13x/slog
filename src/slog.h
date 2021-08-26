@@ -140,11 +140,11 @@ typedef struct SLogConfig {
     uint8_t nToFile:1;                  // Enable file logging
     uint8_t nFlush:1;                   // Flush stdout after screen log
     uint16_t nFlags;                    // Allowed log level flags
-} SLogConfig;
+} slog_config_t;
 
 const char* slog_version(uint8_t nMin);
-void slog_config_get(SLogConfig *pCfg);
-void slog_config_set(SLogConfig *pCfg);
+void slog_config_get(slog_config_t *pCfg);
+void slog_config_set(slog_config_t *pCfg);
 
 void slog_enable(SLOG_FLAGS_E eFlag);
 void slog_disable(SLOG_FLAGS_E eFlag);
