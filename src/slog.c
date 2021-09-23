@@ -37,7 +37,7 @@
 #include <time.h>
 #include "slog.h"
 
-#if !defined(DARWIN) && !defined(WIN32)
+#if !defined(__APPLE__) && !defined(DARWIN) && !defined(WIN32)
 #include <syscall.h>
 #endif
 #include <sys/time.h>
@@ -165,7 +165,7 @@ static void slog_create_tag( char *pOut, size_t nSize, SLOG_FLAGS_E eFlag, const
 
 static uint32_t slog_get_tid()
 {
-#if defined(DARWIN) || defined(WIN32)
+#if defined(__APPLE__) || defined(DARWIN) || defined(WIN32)
     return (uint32_t)pthread_self();
 #else
     return syscall(__NR_gettid);
