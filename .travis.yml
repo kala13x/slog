@@ -1,0 +1,17 @@
+os:
+  - linux
+  - osx
+language: c
+compiler:
+  - clang
+  - gcc
+sudo: required
+dist: trusty
+addons:
+  coverity_scan:
+    project:
+      name: "kala13x/slog"
+    notification_email: sundro.kala@gmail.com
+    build_command_prepend: "mkdir build && cd build && cmake .."
+    build_command:   "cmake --build ."
+    branch_pattern: coverity_scan
