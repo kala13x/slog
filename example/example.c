@@ -25,7 +25,7 @@ void greet()
 int main()
 {
     /* Used variables */
-    SLogConfig slgCfg;
+    slog_config_t cfg;
     int nInteger = 69;
     char sBuffer[12];
 
@@ -37,18 +37,18 @@ int main()
 
     /* Initialize slog and allow only error and not tagged output */
     slog_init("example", nLogFlags, 0);
-    slog_config_get(&slgCfg);
+    slog_config_get(&cfg);
 
     /* Disable time and date in output */
-    slgCfg.eDateControl = SLOG_TIME_DISABLE;
-    slog_config_set(&slgCfg);
+    cfg.eDateControl = SLOG_TIME_DISABLE;
+    slog_config_set(&cfg);
 
     /* Just simple log without anything (color, tag, thread id)*/
     slog("Simple message without anything");
 
     /* Enable only time in output */
-    slgCfg.eDateControl = SLOG_TIME_ONLY;
-    slog_config_set(&slgCfg);
+    cfg.eDateControl = SLOG_TIME_ONLY;
+    slog_config_set(&cfg);
     slog("Simple message with time only");
 
     /* Simple log without adding new line character at the end */
@@ -73,9 +73,9 @@ int main()
     slog_note("Note message with integer variable: %d", nInteger);
 
     /* Trace thread id and print in output */
-    slog_config_get(&slgCfg);
-    slgCfg.nTraceTid = 1;
-    slog_config_set(&slgCfg);
+    slog_config_get(&cfg);
+    cfg.nTraceTid = 1;
+    slog_config_set(&cfg);
 
     /* Debug message with string and integer */
     slog_debug("Debug message with enabled thread id tracing");
@@ -90,10 +90,10 @@ int main()
     slog_trace("Test log with disabled tag");
 
     /* Enable file logger and color the whole log output instead of coloring only tags*/
-    slog_config_get(&slgCfg);
-    slgCfg.eColorFormat = SLOG_COLOR_FULL;
-    slgCfg.nToFile = 1;
-    slog_config_set(&slgCfg);
+    slog_config_get(&cfg);
+    cfg.eColorFormat = SLOG_COLOR_FULL;
+    cfg.nToFile = 1;
+    slog_config_set(&cfg);
 
     /* Print message and save log in the file */
     slog_debug("Debug message in the file with full line color enabled");
@@ -108,15 +108,15 @@ int main()
     slog_fatal("Fatal message also throws source location");
 
     /* Enable date + time in output */ 
-    slog_config_get(&slgCfg);
-    slgCfg.eDateControl = SLOG_DATE_FULL;
-    slog_config_set(&slgCfg);
+    slog_config_get(&cfg);
+    cfg.eDateControl = SLOG_DATE_FULL;
+    slog_config_set(&cfg);
     slog_debug("Debug message with time and date");
 
     /* Disable output coloring*/
-    slog_config_get(&slgCfg);
-    slgCfg.eColorFormat = SLOG_COLOR_DISABLE;
-    slog_config_set(&slgCfg);
+    slog_config_get(&cfg);
+    cfg.eColorFormat = SLOG_COLOR_DISABLE;
+    slog_config_set(&cfg);
 
     slog_debug("Disabled output coloring");
 
