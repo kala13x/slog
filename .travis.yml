@@ -9,6 +9,7 @@ sudo: required
 dist: trusty
 script:
   - mkdir build && cd build && cmake ..
+  - make
   - ./slog-sample
 addons:
   coverity_scan:
