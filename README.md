@@ -1,4 +1,9 @@
-## SLog Logging Library - 1.8 build 23
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/kala13x/slog/blob/master/LICENSE)
+[![Travis Build Status](https://app.travis-ci.com/kala13x/slog.svg?branch=master)](https://app.travis-ci.com/github/kala13x/slog)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/alerts/)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/context:cpp)
+
+## SLOG - Logging Library v1.8.23
 SLog is simple and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters and many more.
 
 ### Installation
