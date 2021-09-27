@@ -21,6 +21,7 @@ git clone https://github.com/kala13x/slog.git
 cd slog
 mkdir build && cd build
 cmake .. && make
+sudo make install
 ```
 
 ### Usage
