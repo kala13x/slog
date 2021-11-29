@@ -42,6 +42,10 @@
 #endif
 #include <sys/time.h>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #ifndef PTHREAD_MUTEX_RECURSIVE 
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
 #endif
@@ -357,6 +361,15 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 
     if (pName != NULL) snprintf(pConfig->sFileName, sizeof(pConfig->sFileName)-1, "%s", pName);
     else snprintf(pConfig->sFileName, sizeof(pConfig->sFileName)-1, "%s", "slog");
+
+#ifdef WIN32
+    // Enable color support
+    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOutput, &dwMode);
+    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOutput, dwMode);
+#endif
 
     /* Initialize mutex */
     g_slog.nTdSafe = nTdSafe;
