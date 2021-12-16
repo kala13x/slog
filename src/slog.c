@@ -396,12 +396,23 @@ void slog_separator_set(const char *pFormat, ...)
     slog_unlock(&g_slog);
 }
 
+void slog_callback_set(slog_cb_t callback, void *pContext)
+{
+    slog_lock(&g_slog);
+    slog_config_t *pCfg = &g_slog.config;
+    pCfg->pCallbackCtx = pContext;
+    pCfg->logCallback = callback;
+    slog_unlock(&g_slog);
+}
+
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
     /* Set up default values */
     slog_config_t *pCfg = &g_slog.config;
     pCfg->eColorFormat = SLOG_COLORING_TAG;
     pCfg->eDateControl = SLOG_TIME_ONLY;
+    pCfg->pCallbackCtx = NULL;
+    pCfg->logCallback = NULL;
     pCfg->sSeparator[0] = ' ';
     pCfg->sSeparator[1] = '\0';
     pCfg->sFilePath[0] = '.';

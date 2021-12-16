@@ -111,8 +111,7 @@ int main()
     slog_enable(SLOG_TRACE);
 
     /* Enable log callback */
-    cfg.logCallback = logCallback;
-    slog_config_set(&cfg);
+    slog_callback_set(logCallback, NULL);
 
     /* We can trace function and line number with and without output message */
     slog_trace("Trace message throws source location");

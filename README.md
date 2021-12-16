@@ -3,7 +3,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/context:cpp)
 
-## SLOG - Logging Library v1.8.24
+## SLOG - Logging Library v1.8.25
 SLog is cross platform and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters and many more.
 
 ### Installation
@@ -170,6 +170,9 @@ Parameter    | Type              | Default           | Description
 -------------|-------------------|-------------------|---------------------------
 sFileName    | char array        | "slog"            | Output file name for logs.
 sFilePath    | char array        | "./"              | Output file path for logs.
+sSeparator   | char array        | " "               | Separator between info and log.
+logCallback  | slog_cb_t         | NULL              | Log callback function to collect logs.
+pCallbackCtx | void*             | NULL              | User data pointer passed to log callback.
 eColorFormat | slog_coloring_t   | SLOG_COLORING_TAG | Output coloring format control.
 eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in log output.
 nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.

@@ -35,7 +35,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          24
+#define SLOG_BUILD_NUM          25
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -171,7 +171,9 @@ typedef struct SLogConfig {
 size_t slog_version(char *pDest, size_t nSize, uint8_t nMin);
 void slog_config_get(slog_config_t *pCfg);
 void slog_config_set(slog_config_t *pCfg);
+
 void slog_separator_set(const char *pFormat, ...);
+void slog_callback_set(slog_cb_t callback, void *pContext);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);
