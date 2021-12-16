@@ -3,7 +3,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/context:cpp)
 
-## SLOG - Logging Library v1.8.23
+## SLOG - Logging Library v1.8.24
 SLog is cross platform and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters and many more.
 
 ### Installation
@@ -165,28 +165,28 @@ With expected output to be:
 
 Since version 1.8.* config file is no longer supported by slog but there is a way to change configuration parameters at runtime.
 
-Variables of `SLogConfig` structure:
-Parameter    | Type              | Default        | Description
--------------|-------------------|----------------|---------------------------
-sFileName    | char array        | "slog"         | Output file name for logs.
-sFilePath    | char array        | "./"           | Output file path for logs.
-eColorFormat | SLOG_COLOR_FMT_E  | SLOG_COLOR_TAG | Output coloring format control.
-eDateControl | SLOG_DATE_CTRL_E  | SLOG_TIME_ONLY | Time and date control in log output.
-nTraceTid    | uint8_t           | 0 (disabled)   | Trace thread ID and display in output.
-nToScreen    | uint8_t           | 1 (enabled)    | Enable or disable screen logging.
-nUseHeap     | uint8_t           | 0 (disabled)   | Use dynamic allocation for output.
-nToFile      | uint8_t           | 0 (disabled)   | Enable or disable file logging.
-nFlush       | uint8_t           | 0 (disabled)   | Flush stdout after screen log.
-nFlags       | uint16_t          | 0 (no logs)    | Allowed log level flags.
+Variables of `slog_config_t` structure:
+Parameter    | Type              | Default           | Description
+-------------|-------------------|-------------------|---------------------------
+sFileName    | char array        | "slog"            | Output file name for logs.
+sFilePath    | char array        | "./"              | Output file path for logs.
+eColorFormat | slog_coloring_t   | SLOG_COLORING_TAG | Output coloring format control.
+eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in log output.
+nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.
+nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
+nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
+nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
+nFlush       | uint8_t           | 0 (disabled)      | Flush stdout after screen log.
+nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
 
 Any of those parameters above can be changed at runtime with the `slog_config_set()` function.
 
 Example:
 ```c
-SLogConfig slgCfg;
+slog_config_t slgCfg;
 
 /* Setup configuration parameters */
-slgCfg.eColorFormat = SLOG_COLOR_TAG;
+slgCfg.eColorFormat = SLOG_COLORING_TAG;
 slgCfg.eDateControl = SLOG_TIME_ONLY;
 strcpy(slgCfg.sFileName, "myproject");
 strcpy(slgCfg.sFilePath, "./logs/");
@@ -204,7 +204,7 @@ slog_config_set(&slgCfg);
 If you want to change only few parameters without resetting other ones, you can thread safe read current working configuration and update only needed parameters.
 
 ```c
-SLogConfig slgCfg;
+slog_config_t slgCfg;
 slog_config_get(&slgCfg);
 
 /* Update needed parameters */
@@ -218,7 +218,7 @@ slog_config_set(&slgCfg);
 ### Dynamic allocation
 If output message is larger than slog default message limit (8196 bytes) there is a possibility to enable dynamic allocation and use heap for output messages:
 ```c
-SLogConfig slgCfg;
+slog_config_t slgCfg;
 slog_config_get(&slgCfg);
 slgCfg.nUseHeap = 1;
 slog_config_set(&slgCfg);
@@ -229,21 +229,21 @@ slog_debug("Your too big output message here");
 ### Coloring
 SLog also has coloring control possibility to colorize whole line, just tag or disable coloring at all.
 ```c
-SLogConfig slgCfg;
+slog_config_t slgCfg;
 slog_config_get(&slgCfg);
 
 /* Colorize only tags */
-slgCfg.eColorFormat = SLOG_COLOR_TAG;
+slgCfg.eColorFormat = SLOG_COLORING_TAG;
 slog_config_set(&slgCfg);
 slog_debug("Message with colorized tag");
 
 /* Colorize full line */
-slgCfg.eColorFormat = SLOG_COLOR_FULL;
+slgCfg.eColorFormat = SLOG_COLORING_FULL;
 slog_config_set(&slgCfg);
 slog_debug("Message with full line color");
 
 /* Disable coloring at all */ 
-slgCfg.eColorFormat = SLOG_COLOR_DISABLE;
+slgCfg.eColorFormat = SLOG_COLORING_DISABLE;
 slog_config_set(&slgCfg);
 slog_debug("Message without coloring");
 ```
@@ -251,7 +251,7 @@ slog_debug("Message without coloring");
 ### Time and date
 SLog gives you possibility to control time and date format in log output.
 ```c
-SLogConfig slgCfg;
+slog_config_t slgCfg;
 slog_config_get(&slgCfg);
 
 /* Disable time and date in output */
@@ -282,7 +282,7 @@ If you are looking for additional information about threads while debugging, you
 
 Here is an example:
 ```c
-SLogConfig slgCfg;
+slog_config_t slgCfg;
 slog_config_get(&slgCfg);
 slgCfg.nTraceTid = 1;
 slog_config_set(&slgCfg);

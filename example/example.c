@@ -14,11 +14,20 @@
 #include <errno.h>
 #include <slog.h>
 
+int logCallback(const char *pLog, size_t nLength, slog_flag_t eFlag, void *pCtx)
+{
+    printf("%s", pLog);
+    return 0;
+}
+
 void greet() 
 {
     /* Get and print slog version */
+    char sVersion[128];
+    slog_version(sVersion, sizeof(sVersion), 0);
+ 
     printf("=========================================\n");
-    printf("SLog Version: %s\n", slog_version(0));
+    printf("SLog Version: %s\n", sVersion);
     printf("=========================================\n");
 }
 
@@ -91,7 +100,7 @@ int main()
 
     /* Enable file logger and color the whole log output instead of coloring only tags*/
     slog_config_get(&cfg);
-    cfg.eColorFormat = SLOG_COLOR_FULL;
+    cfg.eColorFormat = SLOG_COLORING_FULL;
     cfg.nToFile = 1;
     slog_config_set(&cfg);
 
@@ -100,6 +109,10 @@ int main()
 
     /* Enable trace tag */
     slog_enable(SLOG_TRACE);
+
+    /* Enable log callback */
+    cfg.logCallback = logCallback;
+    slog_config_set(&cfg);
 
     /* We can trace function and line number with and without output message */
     slog_trace("Trace message throws source location");
@@ -115,8 +128,9 @@ int main()
 
     /* Disable output coloring*/
     slog_config_get(&cfg);
-    cfg.eColorFormat = SLOG_COLOR_DISABLE;
+    cfg.eColorFormat = SLOG_COLORING_DISABLE;
     slog_config_set(&cfg);
+
 
     slog_debug("Disabled output coloring");
 

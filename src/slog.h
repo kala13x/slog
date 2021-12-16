@@ -33,20 +33,20 @@ extern "C" {
 #include <pthread.h>
 
 /* SLog version information */
-#define SLOG_VERSION_MAJOR  1
-#define SLOG_VERSION_MINOR  8
-#define SLOG_BUILD_NUM      23
+#define SLOG_VERSION_MAJOR      1
+#define SLOG_VERSION_MINOR      8
+#define SLOG_BUILD_NUM          24
 
 /* Supported colors */
-#define SLOG_CLR_NORMAL     "\x1B[0m"
-#define SLOG_CLR_RED        "\x1B[31m"
-#define SLOG_CLR_GREEN      "\x1B[32m"
-#define SLOG_CLR_YELLOW     "\x1B[33m"
-#define SLOG_CLR_BLUE       "\x1B[34m"
-#define SLOG_CLR_MAGENTA    "\x1B[35m"
-#define SLOG_CLR_CYAN       "\x1B[36m"
-#define SLOG_CLR_WHITE      "\x1B[37m"
-#define SLOG_CLR_RESET      "\033[0m"
+#define SLOG_COLOR_NORMAL       "\x1B[0m"
+#define SLOG_COLOR_RED          "\x1B[31m"
+#define SLOG_COLOR_GREEN        "\x1B[32m"
+#define SLOG_COLOR_YELLOW       "\x1B[33m"
+#define SLOG_COLOR_BLUE         "\x1B[34m"
+#define SLOG_COLOR_MAGENTA      "\x1B[35m"
+#define SLOG_COLOR_CYAN         "\x1B[36m"
+#define SLOG_COLOR_WHITE        "\x1B[37m"
+#define SLOG_COLOR_RESET        "\033[0m"
 
 /* Trace source location helpers */
 #define SLOG_TRACE_LVL1(LINE) #LINE
@@ -54,16 +54,22 @@ extern "C" {
 #define SLOG_THROW_LOCATION "[" __FILE__ ":" SLOG_TRACE_LVL2(__LINE__) "] "
 
 /* SLog limits (To be safe while avoiding dynamic allocations) */
-#define SLOG_MESSAGE_MAX    8196
-#define SLOG_VERSION_MAX    128
-#define SLOG_PATH_MAX       2048
-#define SLOG_NAME_MAX       256
-#define SLOG_DATE_MAX       64
-#define SLOG_TAG_MAX        32
-#define SLOG_CLR_MAX        16
+#define SLOG_MESSAGE_MAX        8196
+#define SLOG_VERSION_MAX        128
+#define SLOG_PATH_MAX           2048
+#define SLOG_INFO_MAX           512
+#define SLOG_NAME_MAX           256
+#define SLOG_DATE_MAX           64
+#define SLOG_TAG_MAX            32
+#define SLOG_COLOR_MAX          16
 
 #define SLOG_FLAGS_CHECK(c, f) (((c) & (f)) == (f))
-#define SLOG_FLAGS_ALL      255
+#define SLOG_FLAGS_ALL          255
+
+#define SLOG_NAME_DEFAULT       "slog"
+#define SLOG_NEWLINE            "\n"
+#define SLOG_EMPTY              ""
+#define SLOG_NUL                '\0'
 
 typedef struct SLogDate {
     uint16_t nYear;
@@ -89,22 +95,24 @@ typedef enum
     SLOG_TRACE = (1 << 5),
     SLOG_ERROR = (1 << 6),
     SLOG_FATAL = (1 << 7)
-} SLOG_FLAGS_E;
+} slog_flag_t;
+
+typedef int(*slog_cb_t)(const char *pLog, size_t nLength, slog_flag_t eFlag, void *pCtx);
 
 /* Output coloring control flags */
 typedef enum
 {
-    SLOG_COLOR_DISABLE = 0,
-    SLOG_COLOR_TAG,
-    SLOG_COLOR_FULL
-} SLOG_COLOR_FMT_E;
+    SLOG_COLORING_DISABLE = 0,
+    SLOG_COLORING_TAG,
+    SLOG_COLORING_FULL
+} slog_coloring_t;
 
 typedef enum
 {
     SLOG_TIME_DISABLE = 0,
     SLOG_TIME_ONLY,
     SLOG_DATE_FULL
-} SLOG_DATE_CTRL_E;
+} slog_date_ctrl_t;
 
 #define slog(...) \
     slog_display(SLOG_NOTAG, 1, __VA_ARGS__)
@@ -143,27 +151,33 @@ typedef enum
 #define slogf(...) slog_fatal(__VA_ARGS__)
 
 typedef struct SLogConfig {
-    char sFileName[SLOG_NAME_MAX];      // Output file name for logs
-    char sFilePath[SLOG_PATH_MAX];      // Output file path for logs
-    SLOG_COLOR_FMT_E eColorFormat;      // Output color format control
-    SLOG_DATE_CTRL_E eDateControl;      // Display output with date format
+    slog_date_ctrl_t eDateControl;     // Display output with date format
+    slog_coloring_t eColorFormat;      // Output color format control
+    slog_cb_t logCallback;             // Log callback to collect logs
+    void* pCallbackCtx;                // Data pointer passed to log callback
+
     uint8_t nTraceTid:1;                // Trace thread ID and display in output
     uint8_t nToScreen:1;                // Enable screen logging
     uint8_t nUseHeap:1;                 // Use dynamic allocation
     uint8_t nToFile:1;                  // Enable file logging
     uint8_t nFlush:1;                   // Flush stdout after screen log
     uint16_t nFlags;                    // Allowed log level flags
+
+    char sSeparator[SLOG_NAME_MAX];     // Separator between info and log
+    char sFileName[SLOG_NAME_MAX];      // Output file name for logs
+    char sFilePath[SLOG_PATH_MAX];      // Output file path for logs
 } slog_config_t;
 
-const char* slog_version(uint8_t nMin);
+size_t slog_version(char *pDest, size_t nSize, uint8_t nMin);
 void slog_config_get(slog_config_t *pCfg);
 void slog_config_set(slog_config_t *pCfg);
+void slog_separator_set(const char *pFormat, ...);
 
-void slog_enable(SLOG_FLAGS_E eFlag);
-void slog_disable(SLOG_FLAGS_E eFlag);
+void slog_enable(slog_flag_t eFlag);
+void slog_disable(slog_flag_t eFlag);
 
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
-void slog_display(SLOG_FLAGS_E eFlag, uint8_t nNewLine, const char *pMsg, ...);
+void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char *pFormat, ...);
 void slog_destroy(); // Needed only if the slog_init() function argument nTdSafe > 0
 
 #ifdef __cplusplus
