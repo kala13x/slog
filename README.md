@@ -179,6 +179,7 @@ nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and displ
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
+nIdent       | uint8_t           | 0 (disabled)      | Enable or disable identations.
 nFlush       | uint8_t           | 0 (disabled)      | Flush stdout after screen log.
 nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
 

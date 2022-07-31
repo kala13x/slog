@@ -35,7 +35,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          25
+#define SLOG_BUILD_NUM          26
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -68,6 +68,8 @@ extern "C" {
 
 #define SLOG_NAME_DEFAULT       "slog"
 #define SLOG_NEWLINE            "\n"
+#define SLOG_IDENT              "       "
+#define SLOG_SPACE              " "
 #define SLOG_EMPTY              ""
 #define SLOG_NUL                '\0'
 
@@ -156,12 +158,13 @@ typedef struct SLogConfig {
     slog_cb_t logCallback;             // Log callback to collect logs
     void* pCallbackCtx;                // Data pointer passed to log callback
 
-    uint8_t nTraceTid:1;                // Trace thread ID and display in output
-    uint8_t nToScreen:1;                // Enable screen logging
-    uint8_t nUseHeap:1;                 // Use dynamic allocation
-    uint8_t nToFile:1;                  // Enable file logging
-    uint8_t nFlush:1;                   // Flush stdout after screen log
-    uint16_t nFlags;                    // Allowed log level flags
+    uint8_t nTraceTid;                 // Trace thread ID and display in output
+    uint8_t nToScreen;                 // Enable screen logging
+    uint8_t nUseHeap;                  // Use dynamic allocation
+    uint8_t nToFile;                   // Enable file logging
+    uint8_t nIdent;                    // Enable identation
+    uint8_t nFlush;                    // Flush stdout after screen log
+    uint16_t nFlags;                   // Allowed log level flags
 
     char sSeparator[SLOG_NAME_MAX];     // Separator between info and log
     char sFileName[SLOG_NAME_MAX];      // Output file name for logs
@@ -174,6 +177,7 @@ void slog_config_set(slog_config_t *pCfg);
 
 void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
+void slog_ident(uint8_t nEnable);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);

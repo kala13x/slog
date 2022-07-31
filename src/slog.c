@@ -105,6 +105,29 @@ static void slog_unlock(slog_t *pSlog)
     }
 }
 
+static const char *slog_get_ident(slog_flag_t eFlag)
+{
+    slog_config_t *pCfg = &g_slog.config;
+    if (!pCfg->nIdent) return SLOG_EMPTY;
+
+    switch (eFlag)
+    {
+        case SLOG_NOTAG:
+            return SLOG_IDENT;
+        case SLOG_NOTE:
+        case SLOG_INFO:
+        case SLOG_WARN:
+             return SLOG_SPACE;
+        case SLOG_DEBUG:
+        case SLOG_TRACE:
+        case SLOG_FATAL:
+        case SLOG_ERROR:
+        default: break;
+    }
+
+    return SLOG_EMPTY;
+}
+
 static const char* slog_get_tag(slog_flag_t eFlag)
 {
     switch (eFlag)
@@ -126,7 +149,8 @@ static const char* slog_get_color(slog_flag_t eFlag)
 {
     switch (eFlag)
     {
-        case SLOG_NOTE: return SLOG_COLOR_NORMAL;
+        case SLOG_NOTAG:
+        case SLOG_NOTE: return SLOG_EMPTY;
         case SLOG_INFO: return SLOG_COLOR_GREEN;
         case SLOG_WARN: return SLOG_COLOR_YELLOW;
         case SLOG_DEBUG: return SLOG_COLOR_BLUE;
@@ -136,7 +160,7 @@ static const char* slog_get_color(slog_flag_t eFlag)
         default: break;
     }
 
-    return SLOG_COLOR_NORMAL;
+    return SLOG_EMPTY;
 }
 
 uint8_t slog_get_usec()
@@ -179,11 +203,17 @@ static void slog_create_tag(char *pOut, size_t nSize, slog_flag_t eFlag, const c
     slog_config_t *pCfg = &g_slog.config;
     pOut[0] = SLOG_NUL;
 
+    const char *pIdent = slog_get_ident(eFlag);
     const char *pTag = slog_get_tag(eFlag);
-    if (pTag == NULL) return;
 
-    if (pCfg->eColorFormat != SLOG_COLORING_TAG) snprintf(pOut, nSize, "<%s> ", pTag);
-    else snprintf(pOut, nSize, "%s<%s>%s ", pColor, pTag, SLOG_COLOR_RESET);
+    if (pTag == NULL)
+    {
+        snprintf(pOut, nSize, pIdent);
+        return;
+    }
+
+    if (pCfg->eColorFormat != SLOG_COLORING_TAG) snprintf(pOut, nSize, "<%s>%s", pTag, pIdent);
+    else snprintf(pOut, nSize, "%s<%s>%s%s", pColor, pTag, SLOG_COLOR_RESET, pIdent);
 }
 
 static void slog_create_tid(char *pOut, int nSize, uint8_t nTraceTid)
@@ -192,21 +222,22 @@ static void slog_create_tid(char *pOut, int nSize, uint8_t nTraceTid)
     else snprintf(pOut, nSize, "(%u) ", slog_get_tid());
 }
 
-static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, const char *pInput)
+static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, int nInfoLen, const char *pInput)
 {
+    slog_config_t *pCfg = &g_slog.config;
+    int nCbVal = 1;
+
+    const char *pSeparator = nInfoLen > 0 ? pCfg->sSeparator : SLOG_EMPTY;
     const char *pReset = pCtx->nFullColor ? SLOG_COLOR_RESET : SLOG_EMPTY;
     const char *pNewLine = pCtx->nNewLine ? SLOG_NEWLINE : SLOG_EMPTY;
     const char *pMessage = pInput != NULL ? pInput : SLOG_EMPTY;
-
-    slog_config_t *pCfg = &g_slog.config;
-    int nCbVal = 1;
 
     if (pCfg->logCallback != NULL)
     {
         size_t nLength = 0;
         char *pLog = NULL;
 
-        nLength += asprintf(&pLog, "%s%s%s%s", pInfo, pMessage, pReset, pNewLine);
+        nLength += asprintf(&pLog, "%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
         if (pLog != NULL)
         {
             nCbVal = pCfg->logCallback(pLog, nLength, pCtx->eFlag, pCfg->pCallbackCtx);
@@ -216,7 +247,7 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
 
     if (pCfg->nToScreen && nCbVal > 0)
     {
-        printf("%s%s%s%s", pInfo, pMessage, pReset, pNewLine);
+        printf("%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
         if (pCfg->nFlush) fflush(stdout);
     }
 
@@ -230,11 +261,11 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
     FILE *pFile = fopen(sFilePath, "a");
     if (pFile == NULL) return;
 
-    fprintf(pFile, "%s%s%s%s", pInfo, pMessage, pReset, pNewLine);
+    fprintf(pFile, "%s%s%s%s%s", pInfo, pSeparator, pMessage, pReset, pNewLine);
     fclose(pFile);
 }
 
-static void slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSize)
+static int slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSize)
 {
     slog_config_t *pCfg = &g_slog.config;
     const slog_date_t *pDate = &pCtx->date;
@@ -244,20 +275,14 @@ static void slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSiz
 
     if (pCfg->eDateControl == SLOG_TIME_ONLY)
     {
-        snprintf(sDate, sizeof(sDate),
-            "%02d:%02d:%02d.%03d%s",
-            pDate->nHour,pDate->nMin,
-            pDate->nSec, pDate->nUsec,
-            pCfg->sSeparator);
+        snprintf(sDate, sizeof(sDate), "%02d:%02d:%02d.%03d ",
+            pDate->nHour,pDate->nMin, pDate->nSec, pDate->nUsec);
     }
     else if (pCfg->eDateControl == SLOG_DATE_FULL)
     {
-        snprintf(sDate, sizeof(sDate),
-            "%04d.%02d.%02d-%02d:%02d:%02d.%03d%s",
-            pDate->nYear, pDate->nMonth,
-            pDate->nDay, pDate->nHour,
-            pDate->nMin, pDate->nSec,
-            pDate->nUsec, pCfg->sSeparator);
+        snprintf(sDate, sizeof(sDate), "%04d.%02d.%02d-%02d:%02d:%02d.%03d ",
+            pDate->nYear, pDate->nMonth, pDate->nDay, pDate->nHour,
+            pDate->nMin, pDate->nSec, pDate->nUsec);
     }
 
     char sTid[SLOG_TAG_MAX], sTag[SLOG_TAG_MAX];
@@ -266,7 +291,7 @@ static void slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSiz
 
     slog_create_tid(sTid, sizeof(sTid), pCfg->nTraceTid);
     slog_create_tag(sTag, sizeof(sTag), pCtx->eFlag, pColorCode);
-    snprintf(pOut, nSize, "%s%s%s%s", pColor, sTid, sDate, sTag); 
+    return snprintf(pOut, nSize, "%s%s%s%s", pColor, sTid, sDate, sTag);
 }
 
 static void slog_display_heap(const slog_context_t *pCtx, va_list args)
@@ -286,8 +311,8 @@ static void slog_display_heap(const slog_context_t *pCtx, va_list args)
         return;
     }
 
-    slog_create_info(pCtx, sLogInfo, sizeof(sLogInfo));
-    slog_display_message(pCtx, sLogInfo, pMessage);
+    int nLength = slog_create_info(pCtx, sLogInfo, sizeof(sLogInfo));
+    slog_display_message(pCtx, sLogInfo, nLength, pMessage);
     if (pMessage != NULL) free(pMessage);
 }
 
@@ -297,8 +322,8 @@ static void slog_display_stack(const slog_context_t *pCtx, va_list args)
     char sLogInfo[SLOG_INFO_MAX];
 
     vsnprintf(sMessage, sizeof(sMessage), pCtx->pFormat, args);
-    slog_create_info(pCtx, sLogInfo, sizeof(sLogInfo));
-    slog_display_message(pCtx, sLogInfo, sMessage);
+    int nLength = slog_create_info(pCtx, sLogInfo, sizeof(sLogInfo));
+    slog_display_message(pCtx, sLogInfo, nLength, sMessage);
 }
 
 void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char *pFormat, ...)
@@ -396,6 +421,13 @@ void slog_separator_set(const char *pFormat, ...)
     slog_unlock(&g_slog);
 }
 
+void slog_ident(uint8_t nEnable)
+{
+    slog_lock(&g_slog);
+    g_slog.config.nIdent = nEnable;
+    slog_unlock(&g_slog);
+}
+
 void slog_callback_set(slog_cb_t callback, void *pContext)
 {
     slog_lock(&g_slog);
@@ -421,6 +453,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nToScreen = 1;
     pCfg->nUseHeap = 0;
     pCfg->nToFile = 0;
+    pCfg->nIdent = 0;
     pCfg->nFlush = 0;
     pCfg->nFlags = nFlags;
 

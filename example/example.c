@@ -39,7 +39,7 @@ int main()
     char sBuffer[12];
 
     strcpy(sBuffer, "test string");
-    uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG;
+    uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG | SLOG_NOTE;
 
     /* Greet users */
     greet();
@@ -54,10 +54,14 @@ int main()
 
     /* Just simple log without anything (color, tag, thread id)*/
     slog("Simple message without anything");
+    slogn("Simple note message without timings");
 
     /* Enable only time in output */
     cfg.eDateControl = SLOG_TIME_ONLY;
+    cfg.nIdent = 1;
     slog_config_set(&cfg);
+
+    slogn("Simple note message");
     slog("Simple message with time only");
 
     /* Simple log without adding new line character at the end */
