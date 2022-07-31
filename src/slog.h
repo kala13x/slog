@@ -68,7 +68,7 @@ extern "C" {
 
 #define SLOG_NAME_DEFAULT       "slog"
 #define SLOG_NEWLINE            "\n"
-#define SLOG_IDENT              "       "
+#define SLOG_INDENT             "       "
 #define SLOG_SPACE              " "
 #define SLOG_EMPTY              ""
 #define SLOG_NUL                '\0'
@@ -162,7 +162,7 @@ typedef struct SLogConfig {
     uint8_t nToScreen;                 // Enable screen logging
     uint8_t nUseHeap;                  // Use dynamic allocation
     uint8_t nToFile;                   // Enable file logging
-    uint8_t nIdent;                    // Enable identation
+    uint8_t nIndent;                   // Enable indentations
     uint8_t nFlush;                    // Flush stdout after screen log
     uint16_t nFlags;                   // Allowed log level flags
 
@@ -177,7 +177,7 @@ void slog_config_set(slog_config_t *pCfg);
 
 void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
-void slog_ident(uint8_t nEnable);
+void slog_indent(uint8_t nEnable);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);

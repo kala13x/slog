@@ -58,7 +58,7 @@ int main()
 
     /* Enable only time in output */
     cfg.eDateControl = SLOG_TIME_ONLY;
-    cfg.nIdent = 1;
+    cfg.nIndent = 1;
     slog_config_set(&cfg);
 
     slogn("Simple note message");

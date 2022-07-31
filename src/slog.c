@@ -105,15 +105,15 @@ static void slog_unlock(slog_t *pSlog)
     }
 }
 
-static const char *slog_get_ident(slog_flag_t eFlag)
+static const char *slog_get_indent(slog_flag_t eFlag)
 {
     slog_config_t *pCfg = &g_slog.config;
-    if (!pCfg->nIdent) return SLOG_EMPTY;
+    if (!pCfg->nIndent) return SLOG_EMPTY;
 
     switch (eFlag)
     {
         case SLOG_NOTAG:
-            return SLOG_IDENT;
+            return SLOG_INDENT;
         case SLOG_NOTE:
         case SLOG_INFO:
         case SLOG_WARN:
@@ -203,17 +203,17 @@ static void slog_create_tag(char *pOut, size_t nSize, slog_flag_t eFlag, const c
     slog_config_t *pCfg = &g_slog.config;
     pOut[0] = SLOG_NUL;
 
-    const char *pIdent = slog_get_ident(eFlag);
+    const char *pIndent = slog_get_indent(eFlag);
     const char *pTag = slog_get_tag(eFlag);
 
     if (pTag == NULL)
     {
-        snprintf(pOut, nSize, pIdent);
+        snprintf(pOut, nSize, pIndent);
         return;
     }
 
-    if (pCfg->eColorFormat != SLOG_COLORING_TAG) snprintf(pOut, nSize, "<%s>%s", pTag, pIdent);
-    else snprintf(pOut, nSize, "%s<%s>%s%s", pColor, pTag, SLOG_COLOR_RESET, pIdent);
+    if (pCfg->eColorFormat != SLOG_COLORING_TAG) snprintf(pOut, nSize, "<%s>%s", pTag, pIndent);
+    else snprintf(pOut, nSize, "%s<%s>%s%s", pColor, pTag, SLOG_COLOR_RESET, pIndent);
 }
 
 static void slog_create_tid(char *pOut, int nSize, uint8_t nTraceTid)
@@ -421,10 +421,10 @@ void slog_separator_set(const char *pFormat, ...)
     slog_unlock(&g_slog);
 }
 
-void slog_ident(uint8_t nEnable)
+void slog_indent(uint8_t nEnable)
 {
     slog_lock(&g_slog);
-    g_slog.config.nIdent = nEnable;
+    g_slog.config.nIndent = nEnable;
     slog_unlock(&g_slog);
 }
 
@@ -453,7 +453,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nToScreen = 1;
     pCfg->nUseHeap = 0;
     pCfg->nToFile = 0;
-    pCfg->nIdent = 0;
+    pCfg->nIndent = 0;
     pCfg->nFlush = 0;
     pCfg->nFlags = nFlags;
 
