@@ -179,7 +179,7 @@ nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and displ
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
-nIdent       | uint8_t           | 0 (disabled)      | Enable or disable identations.
+nIndent      | uint8_t          | 0 (disabled)     | Enable or disable indentations.
 nFlush       | uint8_t           | 0 (disabled)      | Flush stdout after screen log.
 nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
 
@@ -293,6 +293,28 @@ slog_config_set(&slgCfg);
 
 slog_debug("Message with thread id");
 ```
+
+### Indentations
+With enabled indentation flag, slog will automatically adjust the spacing between the information and the message.
+
+```c
+slog_config_t slgCfg;
+slog_config_get(&slgCfg);
+slgCfg.nIndnets = 1;
+slog_config_set(&slgCfg);
+
+/* You can also enable indents like that */
+slog_indent(1); // Any value except 0 will enable it
+```
+
+With indentations enabled:
+
+![alt tag](https://github.com/kala13x/slog/blob/master/example/indent.png)
+
+Without indentations enabled:
+
+![alt tag](https://github.com/kala13x/slog/blob/master/example/no-indent.png)
+
 
 With expected output to be:
 ```
