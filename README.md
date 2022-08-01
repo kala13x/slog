@@ -294,6 +294,13 @@ slog_config_set(&slgCfg);
 slog_debug("Message with thread id");
 ```
 
+With expected output to be:
+```
+(15203) 2017.01.22-19:03:17.03 - <debug> Message with thread id.
+```
+Where `15203` is a thread identifier from which the message was printed.
+
+
 ### Indentations
 With enabled indentation flag, slog will automatically adjust the spacing between the information and the message.
 
@@ -315,12 +322,6 @@ Without indentations enabled:
 
 ![alt tag](https://github.com/kala13x/slog/blob/master/example/no-indent.png)
 
-
-With expected output to be:
-```
-(15203) 2017.01.22-19:03:17.03 - <debug> Message with thread id.
-```
-Where `15203` is a thread identifier from which the message was printed.
 
 ### Version
 There are two ways to get and print slog version with this library. Function `slog_version()` returns char pointer of static array where slog version string is located. If argument is more than zero function returns string with only version and build number. Otherwise it returns full version format with build date.
