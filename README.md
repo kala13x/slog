@@ -1,10 +1,10 @@
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/kala13x/slog/blob/master/LICENSE)
-[![Travis Build Status](https://app.travis-ci.com/kala13x/slog.svg?branch=master)](https://app.travis-ci.com/github/kala13x/slog)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/alerts/)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/kala13x/slog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kala13x/slog/context:cpp)
+[![MIT License](https://img.shields.io/badge/License-MIT-brightgreen.svg?)](https://github.com/kala13x/slog/blob/master/LICENSE)
+[![CMake](https://github.com/kala13x/slog/actions/workflows/cmake.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/cmake.yml)
+[![C/C++ CI](https://github.com/kala13x/slog/actions/workflows/make.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/make.yml)
+[![CodeQL](https://github.com/kala13x/slog/actions/workflows/codeql.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/codeql.yml)
 
-## SLOG - Logging Library v1.8.25
-SLog is cross platform and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters, optional log callback for log collection and many more.
+## SLOG - Logging Library
+SLog is cross platform and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters, optional log callback for log collection and many more. Read `src/slog.h` file to check out what release version do you have.
 
 ### Installation
 Installation is possible with `Makefile`.
