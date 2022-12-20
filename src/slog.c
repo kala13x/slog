@@ -208,7 +208,7 @@ static void slog_create_tag(char *pOut, size_t nSize, slog_flag_t eFlag, const c
 
     if (pTag == NULL)
     {
-        snprintf(pOut, nSize, pIndent);
+        snprintf(pOut, nSize, "%s", pIndent);
         return;
     }
 
