@@ -57,7 +57,7 @@ slog_init("logfile", nEnabledLevels, 0);
 
 If thread safety flag is greater than zero, function initializes mutex and every other call of any slog function is protected by lock.
 
-With the above slog initialization example only errors, warnings and not tagged messages will be displayed because there are no other flags activated during initializarion. We can also activate or deactivate any logging level after slog initialization by setting the flag with `slog_enable()` and `slog_disable()` functions.
+With the above slog initialization example only errors, warnings and not tagged messages will be displayed because there are no other flags activated during initializarion. Any logging level can also be activated or deactivated after slog initialization by setting the flag with the `slog_enable()` and `slog_disable()` functions.
 
 ```c
 /* Enable all logging levels */
@@ -86,9 +86,11 @@ Here is an example on how use slog:
 slog("Simple message with time and date");
 ```
 
-SLog ends strings automatically with the new line character `\n`. If you want to display output without adding new line character, you must use `slogwn()` function.
+SLog ends strings automatically with the new line character `\n`. If you want to display output without adding new line character, you can either use `slog_new_line()` function or `slog_config_set()` to update running configuration.
 ```c
+slog_new_line(0); // Disable new line ending
 slogwn("Simple message without new line character");
+slog_new_line(1); // Enable again new line ending
 ```
 
 You can use old way logging function with a bit more control of parameters
@@ -177,9 +179,10 @@ eColorFormat | slog_coloring_t   | SLOG_COLORING_TAG | Output coloring format co
 eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in log output.
 nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
+nNewLine     | uint8_t           | 1 (enabled)       | Enable or disable new line ending.
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
-nIndent      | uint8_t          | 0 (disabled)     | Enable or disable indentations.
+nIndent      | uint8_t           | 0 (disabled)      | Enable or disable indentations.
 nFlush       | uint8_t           | 0 (disabled)      | Flush stdout after screen log.
 nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
 
@@ -196,6 +199,7 @@ strcpy(slgCfg.sFileName, "myproject");
 strcpy(slgCfg.sFilePath, "./logs/");
 slgCfg.nTraceTid = 1;
 slgCfg.nToScreen = 1;
+slgCfg.nNewLine = 1;
 slgCfg.nUseHeap = 0;
 slgCfg.nToFile = 0;
 slgCfg.nFlush = 1;

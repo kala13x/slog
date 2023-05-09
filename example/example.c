@@ -64,17 +64,13 @@ int main()
     slogn("Simple note message");
     slog("Simple message with time only");
 
+    slog_new_line(0); // Disable new line ending
     /* Simple log without adding new line character at the end */
-    slogwn("Simple message with our own new line character\n");
+    slog("Simple message with our own new line character\n");
+    slog_new_line(1); // Enable new line ending again
 
     /* Enable all logging flags */
     slog_enable(SLOG_FLAGS_ALL);
-
-    /* Old way logging function with debug tag and disabled new line from argument */
-    slog_display(SLOG_DEBUG, 0, "Old way printed debug message with our own new line character\n");
-
-    /* Old way logging function with error tag and enabled new line from argument */
-    slog_display(SLOG_ERROR, 1, "Old way printed error message with %s", "auto new line character");
 
     /* Warning message */
     slog_warn("Warning message without variable");
