@@ -82,7 +82,6 @@ int main()
     slog_note("Note message with integer variable: %d", nInteger);
 
     /* Trace thread id and print in output */
-    slog_config_get(&cfg);
     cfg.nTraceTid = 1;
     slog_config_set(&cfg);
 
@@ -99,7 +98,6 @@ int main()
     slog_trace("Test log with disabled tag");
 
     /* Enable file logger and color the whole log output instead of coloring only tags*/
-    slog_config_get(&cfg);
     cfg.eColorFormat = SLOG_COLORING_FULL;
     cfg.nToFile = 1;
     slog_config_set(&cfg);
@@ -120,17 +118,13 @@ int main()
     slog_fatal("Fatal message also throws source location");
 
     /* Enable date + time in output */ 
-    slog_config_get(&cfg);
     cfg.eDateControl = SLOG_DATE_FULL;
     slog_config_set(&cfg);
     slog_debug("Debug message with time and date");
 
     /* Disable output coloring*/
-    slog_config_get(&cfg);
     cfg.eColorFormat = SLOG_COLORING_DISABLE;
     slog_config_set(&cfg);
-
-
     slog_debug("Disabled output coloring");
 
     /* Just throw source location without output message */
