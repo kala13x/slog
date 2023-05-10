@@ -487,6 +487,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 void slog_destroy()
 {
     slog_lock(&g_slog);
+    memset(&g_slog.config, 0, sizeof(g_slog.config));
     g_slog.config.pCallbackCtx = NULL;
     g_slog.config.logCallback = NULL;
     slog_unlock(&g_slog);
