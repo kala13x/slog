@@ -76,7 +76,7 @@ static void slog_sync_init(slog_t *pSlog)
         pthread_mutexattr_destroy(&mutexAttr))
     {
         printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
-            __FILE__, __LINE__, __FUNCTION__, errno);
+            __FILE__, __LINE__, __func__, errno);
 
         exit(EXIT_FAILURE);
     }
@@ -87,7 +87,7 @@ static void slog_lock(slog_t *pSlog)
     if (pSlog->nTdSafe && pthread_mutex_lock(&pSlog->mutex))
     {
         printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
-            __FILE__, __LINE__, __FUNCTION__, errno);
+            __FILE__, __LINE__, __func__, errno);
 
         exit(EXIT_FAILURE);
     }
@@ -98,7 +98,7 @@ static void slog_unlock(slog_t *pSlog)
     if (pSlog->nTdSafe && pthread_mutex_unlock(&pSlog->mutex))
     {
         printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
-            __FILE__, __LINE__, __FUNCTION__, errno);
+            __FILE__, __LINE__, __func__, errno);
                 
         exit(EXIT_FAILURE);
     }
@@ -308,7 +308,7 @@ static void slog_display_heap(const slog_context_t *pCtx, va_list args)
     if (pMessage == NULL)
     {
         printf("<%s:%d> %s<error>%s %s: Can not allocate memory for input: errno(%d)\n", 
-            __FILE__, __LINE__, SLOG_COLOR_RED, SLOG_COLOR_RESET, __FUNCTION__, errno);
+            __FILE__, __LINE__, SLOG_COLOR_RED, SLOG_COLOR_RESET, __func__, errno);
 
         return;
     }
