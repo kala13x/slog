@@ -188,12 +188,12 @@ void slog_get_date(slog_date_t *pDate)
     pDate->nUsec = slog_get_usec();
 }
 
-static slog_u32_t slog_get_tid()
+static slog_uptr_t slog_get_tid()
 {
 #ifdef __linux__
-    return syscall(__NR_gettid);
+    return (slog_uptr_t)syscall(__NR_gettid);
 #else
-    return (slog_u32_t)pthread_self();
+    return (slog_uptr_t)pthread_self();
 #endif
 }
 
@@ -218,7 +218,7 @@ static void slog_create_tag(char *pOut, size_t nSize, slog_flag_t eFlag, const c
 static void slog_create_tid(char *pOut, int nSize, slog_u8_t nTraceTid)
 {
     if (!nTraceTid) pOut[0] = SLOG_NUL;
-    else snprintf(pOut, nSize, "(%u) ", slog_get_tid());
+    else snprintf(pOut, nSize, "(%" PRIuPTR ") ", slog_get_tid());
 }
 
 static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, int nInfoLen, const char *pInput)

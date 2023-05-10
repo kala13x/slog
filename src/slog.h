@@ -32,6 +32,7 @@ extern "C" {
 #include <inttypes.h>
 #include <pthread.h>
 
+typedef uintptr_t               slog_uptr_t;
 typedef unsigned int            slog_u32_t;
 typedef unsigned short int      slog_u16_t;
 typedef unsigned char           slog_u8_t;
@@ -39,7 +40,7 @@ typedef unsigned char           slog_u8_t;
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          27
+#define SLOG_BUILD_NUM          28
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
