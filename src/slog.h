@@ -31,16 +31,12 @@ extern "C" {
 
 #include <inttypes.h>
 #include <pthread.h>
-
-typedef uintptr_t               slog_uptr_t;
-typedef unsigned int            slog_u32_t;
-typedef unsigned short int      slog_u16_t;
-typedef unsigned char           slog_u8_t;
+#include <stdint.h>
 
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          29
+#define SLOG_BUILD_NUM          30
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -79,16 +75,16 @@ typedef unsigned char           slog_u8_t;
 #define SLOG_NUL                '\0'
 
 typedef struct SLogDate {
-    slog_u16_t nYear;
-    slog_u8_t nMonth;
-    slog_u8_t nDay;
-    slog_u8_t nHour;
-    slog_u8_t nMin;
-    slog_u8_t nSec;
-    slog_u16_t nUsec;
+    uint16_t nYear;
+    uint8_t nMonth;
+    uint8_t nDay;
+    uint8_t nHour;
+    uint8_t nMin;
+    uint8_t nSec;
+    uint16_t nUsec;
 } slog_date_t;
 
-slog_u16_t slog_get_usec();
+uint16_t slog_get_usec();
 void slog_get_date(slog_date_t *pDate);
 
 /* Log level flags */
@@ -160,33 +156,33 @@ typedef struct SLogConfig {
     slog_cb_t logCallback;              // Log callback to collect logs
     void* pCallbackCtx;                 // Data pointer passed to log callback
 
-    slog_u8_t nTraceTid;                // Trace thread ID and display in output
-    slog_u8_t nToScreen;                // Enable screen logging
-    slog_u8_t nNewLine;                 // Enable new line ending
-    slog_u8_t nUseHeap;                 // Use dynamic allocation
-    slog_u8_t nToFile;                  // Enable file logging
-    slog_u8_t nIndent;                  // Enable indentations
-    slog_u8_t nFlush;                   // Flush stdout after screen log
-    slog_u16_t nFlags;                  // Allowed log level flags
+    uint8_t nTraceTid;                // Trace thread ID and display in output
+    uint8_t nToScreen;                // Enable screen logging
+    uint8_t nNewLine;                 // Enable new line ending
+    uint8_t nUseHeap;                 // Use dynamic allocation
+    uint8_t nToFile;                  // Enable file logging
+    uint8_t nIndent;                  // Enable indentations
+    uint8_t nFlush;                   // Flush stdout after screen log
+    uint16_t nFlags;                  // Allowed log level flags
 
     char sSeparator[SLOG_NAME_MAX];     // Separator between info and log
     char sFileName[SLOG_NAME_MAX];      // Output file name for logs
     char sFilePath[SLOG_PATH_MAX];      // Output file path for logs
 } slog_config_t;
 
-size_t slog_version(char *pDest, size_t nSize, slog_u8_t nMin);
+size_t slog_version(char *pDest, size_t nSize, uint8_t nMin);
 void slog_config_get(slog_config_t *pCfg);
 void slog_config_set(slog_config_t *pCfg);
 
 void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
-void slog_new_line(slog_u8_t nEnable);
-void slog_indent(slog_u8_t nEnable);
+void slog_new_line(uint8_t nEnable);
+void slog_indent(uint8_t nEnable);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);
 
-void slog_init(const char* pName, slog_u16_t nFlags, slog_u8_t nTdSafe);
+void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
 void slog_display(slog_flag_t eFlag, const char *pFormat, ...);
 void slog_destroy(); // Required only if the slog_init() called with nTdSafe > 0
 

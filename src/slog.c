@@ -27,7 +27,6 @@
 #endif
 
 #include <stdio.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -162,11 +161,11 @@ static const char* slog_get_color(slog_flag_t eFlag)
     return SLOG_EMPTY;
 }
 
-slog_u16_t slog_get_usec()
+uint16_t slog_get_usec()
 {
     struct timeval tv;
     if (gettimeofday(&tv, NULL) < 0) return 0;
-    return (slog_u16_t)(tv.tv_usec / 1000);
+    return (uint16_t)(tv.tv_usec / 1000);
 }
 
 void slog_get_date(slog_date_t *pDate)
@@ -188,12 +187,12 @@ void slog_get_date(slog_date_t *pDate)
     pDate->nUsec = slog_get_usec();
 }
 
-static slog_uptr_t slog_get_tid()
+static size_t slog_get_tid()
 {
 #ifdef __linux__
-    return (slog_uptr_t)syscall(__NR_gettid);
+    return (size_t)syscall(__NR_gettid);
 #else
-    return (slog_uptr_t)pthread_self();
+    return (size_t)pthread_self();
 #endif
 }
 
@@ -215,10 +214,10 @@ static void slog_create_tag(char *pOut, size_t nSize, slog_flag_t eFlag, const c
     else snprintf(pOut, nSize, "%s<%s>%s%s", pColor, pTag, SLOG_COLOR_RESET, pIndent);
 }
 
-static void slog_create_tid(char *pOut, int nSize, slog_u8_t nTraceTid)
+static void slog_create_tid(char *pOut, int nSize, uint8_t nTraceTid)
 {
     if (!nTraceTid) pOut[0] = SLOG_NUL;
-    else snprintf(pOut, nSize, "(%" PRIuPTR ") ", slog_get_tid());
+    else snprintf(pOut, nSize, "(%zu) ", slog_get_tid());
 }
 
 static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, int nInfoLen, const char *pInput)
@@ -226,7 +225,7 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
     slog_config_t *pCfg = &g_slog.config;
     int nCbVal = 1;
 
-    slog_u8_t nFullColor = pCfg->eColorFormat == SLOG_COLORING_FULL ? 1 : 0;
+    uint8_t nFullColor = pCfg->eColorFormat == SLOG_COLORING_FULL ? 1 : 0;
     const char *pSeparator = nInfoLen > 0 ? pCfg->sSeparator : SLOG_EMPTY;
     const char *pNewLine = pCfg->nNewLine ? SLOG_NEWLINE : SLOG_EMPTY;
     const char *pMessage = pInput != NULL ? pInput : SLOG_EMPTY;
@@ -286,7 +285,7 @@ static int slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSize
     }
 
     char sTid[SLOG_TAG_MAX], sTag[SLOG_TAG_MAX];
-    slog_u8_t nFullColor = pCfg->eColorFormat == SLOG_COLORING_FULL ? 1 : 0;
+    uint8_t nFullColor = pCfg->eColorFormat == SLOG_COLORING_FULL ? 1 : 0;
 
     const char *pColorCode = slog_get_color(pCtx->eFlag);
     const char *pColor = nFullColor ? pColorCode : SLOG_EMPTY;
@@ -354,7 +353,7 @@ void slog_display(slog_flag_t eFlag, const char *pFormat, ...)
     slog_unlock(&g_slog);
 }
 
-size_t slog_version(char *pDest, size_t nSize, slog_u8_t nMin)
+size_t slog_version(char *pDest, size_t nSize, uint8_t nMin)
 {
     size_t nLength = 0;
 
@@ -424,14 +423,14 @@ void slog_separator_set(const char *pFormat, ...)
     slog_unlock(&g_slog);
 }
 
-void slog_indent(slog_u8_t nEnable)
+void slog_indent(uint8_t nEnable)
 {
     slog_lock(&g_slog);
     g_slog.config.nIndent = nEnable;
     slog_unlock(&g_slog);
 }
 
-void slog_new_line(slog_u8_t nEnable)
+void slog_new_line(uint8_t nEnable)
 {
     slog_lock(&g_slog);
     g_slog.config.nNewLine = nEnable;
@@ -447,7 +446,7 @@ void slog_callback_set(slog_cb_t callback, void *pContext)
     slog_unlock(&g_slog);
 }
 
-void slog_init(const char* pName, slog_u16_t nFlags, slog_u8_t nTdSafe)
+void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
     /* Set up default values */
     slog_config_t *pCfg = &g_slog.config;
