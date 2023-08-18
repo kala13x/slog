@@ -73,7 +73,7 @@ slog_enable(SLOG_TRACE);
 slog_disable(SLOG_FLAGS_ALL);
 ```
 
-Deinitialization needed only if the `nTdSafe` and/or `nKeepOpen` flags are greater than zero while initialization.
+Deinitialization needed only if the `nTdSafe` and/or `nKeepOpen` flags are greater than zero.
 ```c
 slog_destroy();
 ```
@@ -83,7 +83,7 @@ Function destroys the mutex context, closes output file and resets thread safety
 ### Print and log something in the file
 Here is an example on how use slog:
 ```c
-slog("Simple message with time and date");
+slog("Simple message");
 ```
 
 You can use old way logging function with a bit more control of parameters
@@ -149,7 +149,7 @@ With expected output to be:
 2017.01.22-19:03:17.03 - <trace> [example.c:71] Trace message throws source location.
 ```
 
-We can also trace source location wothout any output message:
+It can also trace source location wothout any output message:
 ```c
 slog_trace();
 ```
@@ -180,11 +180,10 @@ eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in 
 nKeepOpen    | uint8_t           | 0 (disabled)      | Keep the file handle open for future writes.
 nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
-nNewLine     | uint8_t           | 1 (enabled)       | Enable or disable new line ending.
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
 nIndent      | uint8_t           | 0 (disabled)      | Enable or disable indentations.
-nFlush       | uint8_t           | 0 (disabled)      | Flush stdout after screen log.
+nFlush       | uint8_t           | 0 (disabled)      | Flush output file after log.
 nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
 
 Any of those parameters above can be changed at runtime with the `slog_config_set()` function.
@@ -201,7 +200,6 @@ strcpy(slgCfg.sFilePath, "./logs/");
 slgCfg.nKeepOpen = 1;
 slgCfg.nTraceTid = 1;
 slgCfg.nToScreen = 1;
-slgCfg.nNewLine = 1;
 slgCfg.nUseHeap = 0;
 slgCfg.nToFile = 0;
 slgCfg.nFlush = 1;

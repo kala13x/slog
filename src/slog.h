@@ -36,7 +36,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          33
+#define SLOG_BUILD_NUM          34
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"

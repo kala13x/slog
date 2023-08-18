@@ -421,12 +421,10 @@ void slog_config_set(slog_config_t *pCfg)
     slog_lock(&g_slog);
     slog_config_t *pOldCfg = &g_slog.config;
 
-    if (strncmp(pOldCfg->sFilePath, pCfg->sFilePath, sizeof(pOldCfg->sFilePath)) ||
+    if (!pCfg->nToFile ||
+        strncmp(pOldCfg->sFilePath, pCfg->sFilePath, sizeof(pOldCfg->sFilePath)) ||
         strncmp(pOldCfg->sFileName, pCfg->sFileName, sizeof(pOldCfg->sFileName)))
-    {
-        /* Log function will open it again */
-        slog_close_file();
-    }
+            slog_close_file(); /* Log function will open it again if required */
 
     g_slog.config = *pCfg;
     slog_unlock(&g_slog);
