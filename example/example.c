@@ -39,7 +39,7 @@ int main()
     char sBuffer[12];
 
     strcpy(sBuffer, "test string");
-    uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG | SLOG_NOTE;
+    //uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG | SLOG_NOTE;
 
     /* Greet users */
     greet();
