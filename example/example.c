@@ -45,7 +45,7 @@ int main()
     greet();
 
     /* Initialize slog and allow only error and not tagged output */
-    slog_init("example", nLogFlags, 0);
+    slog_init("example", SLOG_FLAGS_ALL, 0);
     slog_config_get(&cfg);
 
     /* Disable time and date in output */
@@ -100,6 +100,7 @@ int main()
     /* Enable file logger and color the whole log output instead of coloring only tags*/
     cfg.eColorFormat = SLOG_COLORING_FULL;
     cfg.nToFile = 1;
+    cfg.nKeepOpen = 1;
     slog_config_set(&cfg);
 
     /* Print message and save log in the file */
@@ -131,5 +132,6 @@ int main()
     slog_trace();
     slog_debug("Above we traced source location without output message");
 
+    slog_destroy();
     return 0;
 }

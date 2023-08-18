@@ -73,11 +73,11 @@ slog_enable(SLOG_TRACE);
 slog_disable(SLOG_FLAGS_ALL);
 ```
 
-Deinitialization needed only if the thread safety flag is greater than zero (nTdSafe > 0) while initialization.
+Deinitialization needed only if the `nTdSafe` and/or `nKeepOpen` flags are greater than zero while initialization.
 ```c
 slog_destroy();
 ```
-Function destroys the mutex context and resets thread safety flag to zero.
+Function destroys the mutex context, closes output file and resets thread safety flag to zero.
 
 
 ### Print and log something in the file
@@ -177,6 +177,7 @@ logCallback  | slog_cb_t         | NULL              | Log callback function to 
 pCallbackCtx | void*             | NULL              | User data pointer passed to log callback.
 eColorFormat | slog_coloring_t   | SLOG_COLORING_TAG | Output coloring format control.
 eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in log output.
+nKeepOpen    | uint8_t           | 0 (disabled)      | Keep the file handle open for future writes.
 nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
 nNewLine     | uint8_t           | 1 (enabled)       | Enable or disable new line ending.
@@ -197,6 +198,7 @@ slgCfg.eColorFormat = SLOG_COLORING_TAG;
 slgCfg.eDateControl = SLOG_TIME_ONLY;
 strcpy(slgCfg.sFileName, "myproject");
 strcpy(slgCfg.sFilePath, "./logs/");
+slgCfg.nKeepOpen = 1;
 slgCfg.nTraceTid = 1;
 slgCfg.nToScreen = 1;
 slgCfg.nNewLine = 1;
