@@ -62,6 +62,7 @@ typedef struct XLogCtx {
     const char *pFormat;
     slog_flag_t eFlag;
     slog_date_t date;
+    uint8_t nNewLine;
 } slog_context_t;
 
 static slog_t g_slog;
@@ -258,7 +259,7 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
 
     uint8_t nFullColor = pCfg->eColorFormat == SLOG_COLORING_FULL ? 1 : 0;
     const char *pSeparator = nInfoLen > 0 ? pCfg->sSeparator : SLOG_EMPTY;
-    const char *pNewLine = pCfg->nNewLine ? SLOG_NEWLINE : SLOG_EMPTY;
+    const char *pNewLine = pCtx->nNewLine ? SLOG_NEWLINE : SLOG_EMPTY;
     const char *pMessage = pInput != NULL ? pInput : SLOG_EMPTY;
     const char *pReset = nFullColor ? SLOG_COLOR_RESET : SLOG_EMPTY;
 
@@ -366,7 +367,7 @@ static void slog_display_stack(const slog_context_t *pCtx, va_list args)
     slog_display_message(pCtx, sLogInfo, nLength, sMessage);
 }
 
-void slog_display(slog_flag_t eFlag, const char *pFormat, ...)
+void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...)
 {
     slog_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
@@ -379,6 +380,7 @@ void slog_display(slog_flag_t eFlag, const char *pFormat, ...)
 
         ctx.eFlag = eFlag;
         ctx.pFormat = pFormat;
+        ctx.nNewLine = nNewLine;
 
         void(*slog_display_args)(const slog_context_t *pCtx, va_list args);
         slog_display_args = pCfg->nUseHeap ? slog_display_heap : slog_display_stack;
@@ -478,13 +480,6 @@ void slog_indent(uint8_t nEnable)
     slog_unlock(&g_slog);
 }
 
-void slog_new_line(uint8_t nEnable)
-{
-    slog_lock(&g_slog);
-    g_slog.config.nNewLine = nEnable;
-    slog_unlock(&g_slog);
-}
-
 void slog_callback_set(slog_cb_t callback, void *pContext)
 {
     slog_lock(&g_slog);
@@ -509,7 +504,6 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nKeepOpen = 0;
     pCfg->nTraceTid = 0;
     pCfg->nToScreen = 1;
-    pCfg->nNewLine = 1;
     pCfg->nUseHeap = 0;
     pCfg->nToFile = 0;
     pCfg->nIndent = 0;

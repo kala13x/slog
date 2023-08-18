@@ -64,10 +64,9 @@ int main()
     slogn("Simple note message");
     slog("Simple message with time only");
 
-    slog_new_line(0); // Disable new line ending
     /* Simple log without adding new line character at the end */
-    slog("Simple message with our own new line character\n");
-    slog_new_line(1); // Enable new line ending again
+    slog_wn("Simple message with our own new line character\n");
+    slog_debug_wn("Debug message with our own new line character\n");
 
     /* Enable all logging flags */
     slog_enable(SLOG_FLAGS_ALL);

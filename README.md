@@ -86,16 +86,9 @@ Here is an example on how use slog:
 slog("Simple message with time and date");
 ```
 
-SLog ends strings automatically with the new line character `\n`. If you want to display output without adding new line character, you can either use `slog_new_line()` function or `slog_config_set()` to update running configuration.
-```c
-slog_new_line(0); // Disable new line ending
-slogwn("Simple message without new line character");
-slog_new_line(1); // Enable again new line ending
-```
-
 You can use old way logging function with a bit more control of parameters
 ```c
-slog_print(SLOG_DEBUG, 0, "Simple debug message without new line character");
+slog_display(SLOG_DEBUG, 0, "Simple debug message without new line character");
 ```
 
  - First argument is a log level flag of current message.
@@ -108,7 +101,6 @@ SLog has cleaner option to log messages without the need to provide the flag par
 Here are defined macros based on the logging levels.
 
 - `slog()`
-- `slogwn()`
 - `slog_live()`
 - `slog_info()`
 - `slog_warn()`
@@ -127,10 +119,18 @@ Even shorter macros:
 - `slogt()` same as `slog_trace()`
 - `slogf()` same as `slog_fatal()`
 
-Each macro takes a formated string. Format tags prototype follows the same rules as the C standard library function `printf()`.
+Each macro takes a formated string and has the another definition that does the same without newline characters.
+- Format tags prototype follows the same rules as the C standard library function `printf()`.
+- Definitions without new line character begin with original names and end with the `_wn` string.
 
-Here is an example that logs a formated debug message:
 ```c
+slog("Simple message");
+slog_wn("Simple message without new line character\n");
+
+slogd("Debug message")
+slogd_wn("Debug message without new line character\n")
+
+slog_debug_wn("Another debug message without new line character\n")
 slog_debug("The %s contains between %d and %d billion stars and at least %d billion planets.", "Milky Way", 200, 400, 100);
 ```
 

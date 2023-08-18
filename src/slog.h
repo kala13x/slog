@@ -36,7 +36,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          32
+#define SLOG_BUILD_NUM          33
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -118,28 +118,53 @@ typedef enum
 } slog_date_ctrl_t;
 
 #define slog(...) \
-    slog_display(SLOG_NOTAG, __VA_ARGS__)
+    slog_display(SLOG_NOTAG, 1, __VA_ARGS__)
 
 #define slog_note(...) \
-    slog_display(SLOG_NOTE, __VA_ARGS__)
+    slog_display(SLOG_NOTE, 1, __VA_ARGS__)
 
 #define slog_info(...) \
-    slog_display(SLOG_INFO, __VA_ARGS__)
+    slog_display(SLOG_INFO, 1, __VA_ARGS__)
 
 #define slog_warn(...) \
-    slog_display(SLOG_WARN, __VA_ARGS__)
+    slog_display(SLOG_WARN, 1, __VA_ARGS__)
 
 #define slog_debug(...) \
-    slog_display(SLOG_DEBUG, __VA_ARGS__)
+    slog_display(SLOG_DEBUG, 1, __VA_ARGS__)
 
 #define slog_error(...) \
-    slog_display(SLOG_ERROR, __VA_ARGS__)
+    slog_display(SLOG_ERROR, 1, __VA_ARGS__)
 
 #define slog_trace(...) \
-    slog_display(SLOG_TRACE, SLOG_THROW_LOCATION __VA_ARGS__)
+    slog_display(SLOG_TRACE, 1, SLOG_THROW_LOCATION __VA_ARGS__)
 
 #define slog_fatal(...) \
-    slog_display(SLOG_FATAL, SLOG_THROW_LOCATION __VA_ARGS__)
+    slog_display(SLOG_FATAL, 1, SLOG_THROW_LOCATION __VA_ARGS__)
+
+/* No new line definitions */
+#define slog_wn(...) \
+    slog_display(SLOG_NOTAG, 0, __VA_ARGS__)
+
+#define slog_note_wn(...) \
+    slog_display(SLOG_NOTE, 0, __VA_ARGS__)
+
+#define slog_info_wn(...) \
+    slog_display(SLOG_INFO, 0, __VA_ARGS__)
+
+#define slog_warn_wn(...) \
+    slog_display(SLOG_WARN, 0, __VA_ARGS__)
+
+#define slog_debug_wn(...) \
+    slog_display(SLOG_DEBUG, 0, __VA_ARGS__)
+
+#define slog_error_wn(...) \
+    slog_display(SLOG_ERROR, 0, __VA_ARGS__)
+
+#define slog_trace_wn(...) \
+    slog_display(SLOG_TRACE, 0, SLOG_THROW_LOCATION __VA_ARGS__)
+
+#define slog_fatal_wn(...) \
+    slog_display(SLOG_FATAL, 0, SLOG_THROW_LOCATION __VA_ARGS__)
 
 /* Short name definitions */
 #define slogn(...) slog_note(__VA_ARGS__)
@@ -150,6 +175,15 @@ typedef enum
 #define slogt(...) slog_trace(__VA_ARGS__)
 #define slogf(...) slog_fatal(__VA_ARGS__)
 
+/* Short name definitions without new line */
+#define slogn_wn(...) slog_note_wn(__VA_ARGS__)
+#define slogi_wn(...) slog_info_wn(__VA_ARGS__)
+#define slogw_wn(...) slog_warn_wn(__VA_ARGS__)
+#define slogd_wn(...) slog_debug_wn( __VA_ARGS__)
+#define sloge_wn(...) slog_error_wn( __VA_ARGS__)
+#define slogt_wn(...) slog_trace_wn(__VA_ARGS__)
+#define slogf_wn(...) slog_fatal_wn(__VA_ARGS__)
+
 typedef struct SLogConfig {
     slog_date_ctrl_t eDateControl;      // Display output with date format
     slog_coloring_t eColorFormat;       // Output color format control
@@ -159,7 +193,6 @@ typedef struct SLogConfig {
     uint8_t nKeepOpen;                  // Keep file handle open for next file writes
     uint8_t nTraceTid;                  // Trace thread ID and display in output
     uint8_t nToScreen;                  // Enable screen logging
-    uint8_t nNewLine;                   // Enable new line ending
     uint8_t nUseHeap;                   // Use dynamic allocation
     uint8_t nToFile;                    // Enable file logging
     uint8_t nIndent;                    // Enable indentations
@@ -177,14 +210,13 @@ void slog_config_set(slog_config_t *pCfg);
 
 void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
-void slog_new_line(uint8_t nEnable);
 void slog_indent(uint8_t nEnable);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);
 
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
-void slog_display(slog_flag_t eFlag, const char *pFormat, ...);
+void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...);
 void slog_destroy(); // Required only if (nTdSafe > 0 || nKeepOpen > 0)
 
 #ifdef __cplusplus
