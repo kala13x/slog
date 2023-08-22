@@ -50,15 +50,19 @@
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
 #endif
 
+typedef struct slog_file {
+    uint8_t nStartDay;
+    FILE *pHandle;
+} slog_file_t;
+
 typedef struct slog {
     pthread_mutex_t mutex;
     slog_config_t config;
-    uint8_t nStartDay;
+    slog_file_t logFile;
     uint8_t nTdSafe;
-    FILE *pLogFile;
 } slog_t;
 
-typedef struct XLogCtx {
+typedef struct slog_context {
     const char *pFormat;
     slog_flag_t eFlag;
     slog_date_t date;
@@ -164,25 +168,25 @@ static const char* slog_get_color(slog_flag_t eFlag)
     return SLOG_EMPTY;
 }
 
-static void slog_close_file()
+static void slog_close_file(slog_file_t *pFile)
 {
-    if (g_slog.pLogFile != NULL)
+    if (pFile->pHandle != NULL)
     {
-        fclose(g_slog.pLogFile);
-        g_slog.pLogFile = NULL;
+        fclose(pFile->pHandle);
+        pFile->pHandle = NULL;
     }
 }
 
-static uint8_t slog_open_file(const slog_config_t *pCfg, const slog_date_t *pDate)
+static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, const slog_date_t *pDate)
 {
-    slog_close_file();
+    slog_close_file(pFile);
 
     char sFilePath[SLOG_PATH_MAX + SLOG_NAME_MAX + SLOG_DATE_MAX];
     snprintf(sFilePath, sizeof(sFilePath), "%s/%s-%04d-%02d-%02d.log",
         pCfg->sFilePath, pCfg->sFileName, pDate->nYear, pDate->nMonth, pDate->nDay);
 
-    g_slog.pLogFile = fopen(sFilePath, "a");
-    if (g_slog.pLogFile == NULL)
+    pFile->pHandle = fopen(sFilePath, "a");
+    if (pFile->pHandle == NULL)
     {
         printf("<%s:%d> %s: [ERROR] Failed to open file: %s (%s)\n",
             __FILE__, __LINE__, __func__, sFilePath, strerror(errno));
@@ -190,6 +194,7 @@ static uint8_t slog_open_file(const slog_config_t *pCfg, const slog_date_t *pDat
         return 0;
     }
 
+    pFile->nStartDay = pDate->nDay;
     return 1;
 }
 
@@ -255,6 +260,7 @@ static void slog_create_tid(char *pOut, int nSize, uint8_t nTraceTid)
 static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, int nInfoLen, const char *pInput)
 {
     slog_config_t *pCfg = &g_slog.config;
+    slog_file_t *pFile = &g_slog.logFile;
     int nCbVal = 1;
 
     uint8_t nFullColor = pCfg->eColorFormat == SLOG_COLORING_FULL ? 1 : 0;
@@ -293,15 +299,15 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
     if (!pCfg->nToFile || nCbVal < 0) return;
     const slog_date_t *pDate = &pCtx->date;
 
-    if ((g_slog.pLogFile == NULL ||
-         g_slog.nStartDay != pDate->nDay) &&
-         !slog_open_file(pCfg, pDate)) return;
+    if ((pFile->pHandle == NULL ||
+         pFile->nStartDay != pDate->nDay) &&
+         !slog_open_file(pFile, pCfg, pDate)) return;
 
-    fprintf(g_slog.pLogFile, "%s%s%s%s%s", pInfo,
+    fprintf(pFile->pHandle, "%s%s%s%s%s", pInfo,
         pSeparator, pMessage, pReset, pNewLine);
 
-    if (pCfg->nFlush) fflush(g_slog.pLogFile);
-    if (!pCfg->nKeepOpen) slog_close_file();
+    if (pCfg->nFlush) fflush(pFile->pHandle);
+    if (!pCfg->nKeepOpen) slog_close_file(pFile);
 }
 
 static int slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSize)
@@ -420,11 +426,12 @@ void slog_config_set(slog_config_t *pCfg)
 {
     slog_lock(&g_slog);
     slog_config_t *pOldCfg = &g_slog.config;
+    slog_file_t *pFile = &g_slog.logFile;
 
     if (!pCfg->nToFile ||
         strncmp(pOldCfg->sFilePath, pCfg->sFilePath, sizeof(pOldCfg->sFilePath)) ||
         strncmp(pOldCfg->sFileName, pCfg->sFileName, sizeof(pOldCfg->sFileName)))
-            slog_close_file(); /* Log function will open it again if required */
+            slog_close_file(pFile); /* Log function will open it again if required */
 
     g_slog.config = *pCfg;
     slog_unlock(&g_slog);
@@ -489,8 +496,10 @@ void slog_callback_set(slog_cb_t callback, void *pContext)
 
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
-    /* Set up default values */
     slog_config_t *pCfg = &g_slog.config;
+    slog_file_t *pFile = &g_slog.logFile;
+
+    /* Set up default values */
     pCfg->eColorFormat = SLOG_COLORING_TAG;
     pCfg->eDateControl = SLOG_TIME_ONLY;
     pCfg->pCallbackCtx = NULL;
@@ -511,8 +520,8 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     const char *pFileName = (pName != NULL) ? pName : SLOG_NAME_DEFAULT;
     snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
 
-    g_slog.pLogFile = NULL;
-    g_slog.nStartDay = 0;
+    pFile->pHandle = NULL;
+    pFile->nStartDay = 0;
 
 #ifdef WIN32
     /* Enable color support */
@@ -535,7 +544,7 @@ void slog_destroy()
     memset(&g_slog.config, 0, sizeof(g_slog.config));
     g_slog.config.pCallbackCtx = NULL;
     g_slog.config.logCallback = NULL;
-    slog_close_file();
+    slog_close_file(&g_slog.logFile);
 
     slog_unlock(&g_slog);
 

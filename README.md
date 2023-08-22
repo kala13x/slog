@@ -161,7 +161,7 @@ With expected output to be:
 
 *Output, taken from example directory:*
 
-![alt tag](https://github.com/kala13x/slog/blob/master/example/slog.png)
+![alt tag](https://github.com/kala13x/slog/blob/master/screens/slog.png)
 
 ### Configuration
 
@@ -320,11 +320,11 @@ slog_indent(1); // Any value except 0 will enable it
 
 With indentations enabled:
 
-![alt tag](https://github.com/kala13x/slog/blob/master/example/indent.png)
+![alt tag](https://github.com/kala13x/slog/blob/master/screens/indent.png)
 
 Without indentations enabled:
 
-![alt tag](https://github.com/kala13x/slog/blob/master/example/no-indent.png)
+![alt tag](https://github.com/kala13x/slog/blob/master/screens/no-indent.png)
 
 
 ### Version

@@ -36,7 +36,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          34
+#define SLOG_BUILD_NUM          35
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -74,7 +74,7 @@ extern "C" {
 #define SLOG_EMPTY              ""
 #define SLOG_NUL                '\0'
 
-typedef struct SLogDate {
+typedef struct slog_date {
     uint16_t nYear;
     uint8_t nMonth;
     uint8_t nDay;
@@ -117,54 +117,25 @@ typedef enum
     SLOG_DATE_FULL
 } slog_date_ctrl_t;
 
-#define slog(...) \
-    slog_display(SLOG_NOTAG, 1, __VA_ARGS__)
-
-#define slog_note(...) \
-    slog_display(SLOG_NOTE, 1, __VA_ARGS__)
-
-#define slog_info(...) \
-    slog_display(SLOG_INFO, 1, __VA_ARGS__)
-
-#define slog_warn(...) \
-    slog_display(SLOG_WARN, 1, __VA_ARGS__)
-
-#define slog_debug(...) \
-    slog_display(SLOG_DEBUG, 1, __VA_ARGS__)
-
-#define slog_error(...) \
-    slog_display(SLOG_ERROR, 1, __VA_ARGS__)
-
-#define slog_trace(...) \
-    slog_display(SLOG_TRACE, 1, SLOG_THROW_LOCATION __VA_ARGS__)
-
-#define slog_fatal(...) \
-    slog_display(SLOG_FATAL, 1, SLOG_THROW_LOCATION __VA_ARGS__)
+/* Slog function definitions */
+#define slog(...) slog_display(SLOG_NOTAG, 1, __VA_ARGS__)
+#define slog_note(...) slog_display(SLOG_NOTE, 1, __VA_ARGS__)
+#define slog_info(...) slog_display(SLOG_INFO, 1, __VA_ARGS__)
+#define slog_warn(...) slog_display(SLOG_WARN, 1, __VA_ARGS__)
+#define slog_debug(...) slog_display(SLOG_DEBUG, 1, __VA_ARGS__)
+#define slog_error(...) slog_display(SLOG_ERROR, 1, __VA_ARGS__)
+#define slog_trace(...) slog_display(SLOG_TRACE, 1, SLOG_THROW_LOCATION __VA_ARGS__)
+#define slog_fatal(...) slog_display(SLOG_FATAL, 1, SLOG_THROW_LOCATION __VA_ARGS__)
 
 /* No new line definitions */
-#define slog_wn(...) \
-    slog_display(SLOG_NOTAG, 0, __VA_ARGS__)
-
-#define slog_note_wn(...) \
-    slog_display(SLOG_NOTE, 0, __VA_ARGS__)
-
-#define slog_info_wn(...) \
-    slog_display(SLOG_INFO, 0, __VA_ARGS__)
-
-#define slog_warn_wn(...) \
-    slog_display(SLOG_WARN, 0, __VA_ARGS__)
-
-#define slog_debug_wn(...) \
-    slog_display(SLOG_DEBUG, 0, __VA_ARGS__)
-
-#define slog_error_wn(...) \
-    slog_display(SLOG_ERROR, 0, __VA_ARGS__)
-
-#define slog_trace_wn(...) \
-    slog_display(SLOG_TRACE, 0, SLOG_THROW_LOCATION __VA_ARGS__)
-
-#define slog_fatal_wn(...) \
-    slog_display(SLOG_FATAL, 0, SLOG_THROW_LOCATION __VA_ARGS__)
+#define slog_wn(...) slog_display(SLOG_NOTAG, 0, __VA_ARGS__)
+#define slog_note_wn(...) slog_display(SLOG_NOTE, 0, __VA_ARGS__)
+#define slog_info_wn(...) slog_display(SLOG_INFO, 0, __VA_ARGS__)
+#define slog_warn_wn(...) slog_display(SLOG_WARN, 0, __VA_ARGS__)
+#define slog_debug_wn(...) slog_display(SLOG_DEBUG, 0, __VA_ARGS__)
+#define slog_error_wn(...) slog_display(SLOG_ERROR, 0, __VA_ARGS__)
+#define slog_trace_wn(...) slog_display(SLOG_TRACE, 0, SLOG_THROW_LOCATION __VA_ARGS__)
+#define slog_fatal_wn(...) slog_display(SLOG_FATAL, 0, SLOG_THROW_LOCATION __VA_ARGS__)
 
 /* Short name definitions */
 #define slogn(...) slog_note(__VA_ARGS__)
