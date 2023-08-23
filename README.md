@@ -8,7 +8,7 @@ SLog is cross platform and thread safe logging library for C/C++ with possibilit
 
 ### Installation
 Installation is possible with `Makefile`.
-```
+```bash
 git clone https://github.com/kala13x/slog.git
 cd slog
 make
@@ -16,7 +16,7 @@ sudo make install
 ```
 
 CMakeLists.txt file is also included in the project.
-```
+```bash
 git clone https://github.com/kala13x/slog.git
 cd slog
 mkdir build && cd build
