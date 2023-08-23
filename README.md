@@ -349,10 +349,10 @@ int main()
     slog_config_t slgCfg;
     slog_config_get(&slgCfg);
     slgCfg.logCallback = log_callback;
-    slgCfg.pCallbackCtx = NULL; // Optional pointer passed to log callback
+    slgCfg.pCallbackCtx = NULL; // Optional pointer passed to the callback
     slog_config_set(&slgCfg);
 
-    slog("This message will be passed to callback function");
+    slog("This message will be passed to the callback function");
 
     slog_destroy();
     return 0;
