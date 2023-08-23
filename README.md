@@ -197,6 +197,8 @@ slgCfg.eColorFormat = SLOG_COLORING_TAG;
 slgCfg.eDateControl = SLOG_TIME_ONLY;
 strcpy(slgCfg.sFileName, "myproject");
 strcpy(slgCfg.sFilePath, "./logs/");
+slgCfg.logCallback = NULL;
+slgCfg.pCallbackCtx = NULL;
 slgCfg.nKeepOpen = 1;
 slgCfg.nTraceTid = 1;
 slgCfg.nToScreen = 1;
@@ -327,11 +329,43 @@ Without indentations enabled:
 ![alt tag](https://github.com/kala13x/slog/blob/master/screens/no-indent.png)
 
 
+### Callback
+If you want to collect logs for any purpose, use a callback function pointer. If this pointer is set, any log will be passed to the function this pointer points to.
+```c
+int log_callback(const char *pLog, size_t nLength, slog_flag_t eFlag, void *pCtx)
+{
+    (void)nLength; // Log message length
+    (void)eFlag; // Logging flag of this message
+    (void)pCtx; // Optional pointer passed to the callback
+
+    printf("%s", pLog);
+    return 0;
+}
+
+int main()
+{
+    slog_init("logfile", SLOG_FLAGS_ALL, 0);
+
+    slog_config_t slgCfg;
+    slog_config_get(&slgCfg);
+    slgCfg.logCallback = log_callback;
+    slgCfg.pCallbackCtx = NULL; // Optional pointer passed to log callback
+    slog_config_set(&slgCfg);
+
+    slog("This message will be passed to callback function");
+
+    slog_destroy();
+    return 0;
+}
+```
+
+If you return `-1` from the callback function, the log will no longer be printed to the screen or written to a file by `slog`. If you return `0`, the log will not be written to the screen but still to a file (if nToFile > 1). If you return `1` the logger will normally continue its routine.
+
 ### Version
 Get `slog` version with the function `slog_version(3)`
-- First argument is destination buffer
-- Second argument is destination buffer size
-- Third argument is short/full version flag
+- First argument is destination buffer.
+- Second argument is destination buffer size.
+- Third argument is short/full version flag.
 
 Usage:
 ```c
@@ -348,8 +382,9 @@ slog version: 1.8 build 22 (Dec 14 2020)
 There are also definitions that can be used to check the version without using the function.
 
 - `SLOG_VERSION_MAJOR` - Major version of the library.
-- `SLOG_VERSION_MINOR` - minor version of the library.
+- `SLOG_VERSION_MINOR` - Minor version of the library.
 - `SLOG_BUILD_NUM` - Build number.
+
 
 ### Output
 Here is en example of the log file context created by slog:
