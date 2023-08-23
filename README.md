@@ -328,17 +328,28 @@ Without indentations enabled:
 
 
 ### Version
-There are two ways to get and print slog version with this library. Function `slog_version()` returns char pointer of static array where slog version string is located. If argument is more than zero function returns string with only version and build number. Otherwise it returns full version format with build date.
+Get `slog` version with the function `slog_version(3)`
+- First argument is destination buffer
+- Second argument is destination buffer size
+- Third argument is short/full version flag
 
 Usage:
 ```c
-printf("slog version: %s", slog_version(0));
+char version[128];
+slog_version(version, sizeof(version), 0);
+printf("slog version: %s", version);
 ```
 
 Output will be something like that:
 ```
 slog version: 1.8 build 22 (Dec 14 2020)
 ```
+
+There are also definitions that can be used to check the version without using the function.
+
+- `SLOG_VERSION_MAJOR` - Major version of the library.
+- `SLOG_VERSION_MINOR` - minor version of the library.
+- `SLOG_BUILD_NUM` - Build number.
 
 ### Output
 Here is en example of the log file context created by slog:

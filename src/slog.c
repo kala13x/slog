@@ -185,7 +185,12 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
     snprintf(sFilePath, sizeof(sFilePath), "%s/%s-%04d-%02d-%02d.log",
         pCfg->sFilePath, pCfg->sFileName, pDate->nYear, pDate->nMonth, pDate->nDay);
 
+#ifdef _WIN32
+    if (fopen_s(&pFile->pHandle, sFilePath, "a")) pFile->pHandle = NULL;
+#else
     pFile->pHandle = fopen(sFilePath, "a");
+#endif
+
     if (pFile->pHandle == NULL)
     {
         printf("<%s:%d> %s: [ERROR] Failed to open file: %s (%s)\n",
