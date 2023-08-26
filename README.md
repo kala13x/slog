@@ -183,6 +183,7 @@ nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen 
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
 nIndent      | uint8_t           | 0 (disabled)      | Enable or disable indentations.
+nRotate      | uint8_t           | 1 (enabled)       | Create new log file for each day.
 nFlush       | uint8_t           | 0 (disabled)      | Flush output file after log.
 nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
 
@@ -362,16 +363,11 @@ int main()
 If you return `-1` from the callback function, the log will no longer be printed to the screen or written to a file by `slog`. If you return `0`, the log will not be written to the screen but still to a file (if nToFile > 1). If you return `1` the logger will normally continue its routine.
 
 ### Version
-Get `slog` version with the function `slog_version(3)`
-- First argument is destination buffer.
-- Second argument is destination buffer size.
-- Third argument is short/full version flag.
+Get `slog` version with the function `slog_version()`. The argument `uint8_t nShort` is a flag to get short or full string of the version (1 short, 0 full).
 
 Usage:
 ```c
-char version[128];
-slog_version(version, sizeof(version), 0);
-printf("slog version: %s", version);
+printf("slog version: %s", slog_version(0));
 ```
 
 Output will be something like that:

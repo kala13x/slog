@@ -23,12 +23,9 @@ int logCallback(const char *pLog, size_t nLength, slog_flag_t eFlag, void *pCtx)
 void greet() 
 {
     /* Get and print slog version */
-    char sVersion[128];
-    slog_version(sVersion, sizeof(sVersion), 0);
- 
-    printf("=========================================\n");
-    printf("SLog Version: %s\n", sVersion);
-    printf("=========================================\n");
+    slog("=========================================");
+    slog("SLog Version: %s", slog_version(0));
+    slog("=========================================");
 }
 
 int main()
@@ -41,12 +38,12 @@ int main()
     strcpy(sBuffer, "test string");
     //uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG | SLOG_NOTE;
 
-    /* Greet users */
-    greet();
-
     /* Initialize slog and allow only error and not tagged output */
     slog_init("example", SLOG_FLAGS_ALL, 0);
     slog_config_get(&cfg);
+
+    /* Greet users */
+    greet();
 
     /* Disable time and date in output */
     cfg.eDateControl = SLOG_TIME_DISABLE;

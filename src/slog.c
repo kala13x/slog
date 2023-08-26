@@ -51,7 +51,7 @@
 #endif
 
 typedef struct slog_file {
-    uint8_t nStartDay;
+    uint8_t nCurrDay;
     FILE *pHandle;
 } slog_file_t;
 
@@ -68,6 +68,11 @@ typedef struct slog_context {
     slog_date_t date;
     uint8_t nNewLine;
 } slog_context_t;
+
+static volatile int g_nHaveSlogVerShort = 0;
+static volatile int g_nHaveSlogVerLong = 0;
+static char g_slogVerShort[128];
+static char g_slogVerLong[256];
 
 static slog_t g_slog;
 
@@ -199,7 +204,7 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
         return 0;
     }
 
-    pFile->nStartDay = pDate->nDay;
+    pFile->nCurrDay = pDate->nDay;
     return 1;
 }
 
@@ -304,9 +309,8 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
     if (!pCfg->nToFile || nCbVal < 0) return;
     const slog_date_t *pDate = &pCtx->date;
 
-    if ((pFile->pHandle == NULL ||
-         pFile->nStartDay != pDate->nDay) &&
-         !slog_open_file(pFile, pCfg, pDate)) return;
+    if (pFile->nCurrDay != pDate->nDay && pCfg->nRotate) slog_close_file(pFile);
+    if (pFile->pHandle == NULL && !slog_open_file(pFile, pCfg, pDate)) return;
 
     fprintf(pFile->pHandle, "%s%s%s%s%s", pInfo,
         pSeparator, pMessage, pReset, pNewLine);
@@ -405,19 +409,30 @@ void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...)
     slog_unlock(&g_slog);
 }
 
-size_t slog_version(char *pDest, size_t nSize, uint8_t nMin)
+const char* slog_version(uint8_t nShort)
 {
-    size_t nLength = 0;
+    if (nShort)
+    {
+        if (!g_nHaveSlogVerShort)
+        {
+            snprintf(g_slogVerShort, sizeof(g_slogVerShort), "%d.%d.%d",
+                SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUMBER);
 
-    /* Version short */
-    if (nMin) nLength = snprintf(pDest, nSize, "%d.%d.%d", 
-        SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUM);
+            g_nHaveSlogVerShort = 1;
+        }
 
-    /* Version long */
-    else nLength = snprintf(pDest, nSize, "%d.%d build %d (%s)", 
-        SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUM, __DATE__);
+        return g_slogVerShort;
+    }
 
-    return nLength;
+    if (!g_nHaveSlogVerLong)
+    {
+        snprintf(g_slogVerLong, sizeof(g_slogVerLong), "%d.%d build %d (%s)",
+        SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUMBER, __DATE__);
+
+        g_nHaveSlogVerLong = 1;
+    }
+
+    return g_slogVerLong;
 }
 
 void slog_config_get(slog_config_t *pCfg)
@@ -519,6 +534,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->nUseHeap = 0;
     pCfg->nToFile = 0;
     pCfg->nIndent = 0;
+    pCfg->nRotate = 1;
     pCfg->nFlush = 0;
     pCfg->nFlags = nFlags;
 
@@ -526,7 +542,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
 
     pFile->pHandle = NULL;
-    pFile->nStartDay = 0;
+    pFile->nCurrDay = 0;
 
 #ifdef WIN32
     /* Enable color support */

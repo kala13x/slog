@@ -36,7 +36,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUM          36
+#define SLOG_BUILD_NUMBER       37
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -167,6 +167,7 @@ typedef struct SLogConfig {
     uint8_t nUseHeap;                   // Use dynamic allocation
     uint8_t nToFile;                    // Enable file logging
     uint8_t nIndent;                    // Enable indentations
+    uint8_t nRotate;                    // Enable log rotation
     uint8_t nFlush;                     // Flush stdout after screen log
     uint16_t nFlags;                    // Allowed log level flags
 
@@ -175,7 +176,7 @@ typedef struct SLogConfig {
     char sFilePath[SLOG_PATH_MAX];      // Output file path for logs
 } slog_config_t;
 
-size_t slog_version(char *pDest, size_t nSize, uint8_t nMin);
+const char* slog_version(uint8_t nShort);
 void slog_config_get(slog_config_t *pCfg);
 void slog_config_set(slog_config_t *pCfg);
 
