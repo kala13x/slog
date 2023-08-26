@@ -379,7 +379,7 @@ There are also definitions that can be used to check the version without using t
 
 - `SLOG_VERSION_MAJOR` - Major version of the library.
 - `SLOG_VERSION_MINOR` - Minor version of the library.
-- `SLOG_BUILD_NUM` - Build number.
+- `SLOG_BUILD_NUMBER` - Build number.
 
 
 ### Output
