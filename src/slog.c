@@ -152,6 +152,51 @@ static void slog_unlock(slog_t *pSlog)
     }
 }
 
+#ifdef _WIN32
+int custom_vasprintf(char **strp, const char *fmt, va_list args)
+{
+    va_list loc_args;
+#ifdef va_copy
+    va_copy(loc_args, args);
+#else
+    memcpy(&loc_args, &args, sizeof(va_list));
+#endif
+
+    int length = vsnprintf(NULL, 0, fmt, loc_args);
+    if (length < 0) return -1;
+
+    *strp = (char *)malloc(length + 1);
+    if (*strp == NULL) return -1;
+
+    int result = vsnprintf(*strp, length + 1, fmt, args);
+    if (result <= 0)
+    {
+        if (*strp != NULL)
+        {
+            free(*strp);
+            *strp = NULL;
+        }
+
+        return -1;
+    }
+
+    int len = result < length ? result : length;
+    char *final = *strp;
+    final[len] = '\0';
+
+    return len;
+}
+
+int custom_asprintf(char **strp, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    int result = custom_vasprintf(strp, fmt, args);
+    va_end(args);
+    return result;
+}
+#endif
+
 static const char *slog_get_indent(slog_flag_t eFlag)
 {
     slog_config_t *pCfg = &g_slog.config;
@@ -331,17 +376,22 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
 
     if (pCfg->logCallback != NULL)
     {
-        size_t nLength = 0;
+        int nLength = 0;
         char *pLog = NULL;
 
-        nLength += asprintf(&pLog, "%s%s%s%s%s", pInfo,
+#ifdef _WIN32
+        nLength = custom_asprintf(&pLog, "%s%s%s%s%s", pInfo,
             pSeparator, pMessage, pReset, pNewLine);
+#else
+        nLength = asprintf(&pLog, "%s%s%s%s%s", pInfo,
+            pSeparator, pMessage, pReset, pNewLine);
+#endif
 
-        if (pLog != NULL)
+        if (pLog != NULL && nLength > 0)
         {
             nCbVal = pCfg->logCallback (
                 pLog,
-                nLength,
+                (size_t)nLength,
                 pCtx->eFlag,
                 pCfg->pCallbackCtx
             );
@@ -402,12 +452,18 @@ static int slog_create_info(const slog_context_t *pCtx, char* pOut, size_t nSize
 
 static void slog_display_heap(const slog_context_t *pCtx, va_list args)
 {
-    size_t nBytes = 0;
+    int nBytes = 0;
     char *pMessage = NULL;
     char sLogInfo[SLOG_INFO_MAX];
 
-    nBytes += vasprintf(&pMessage, pCtx->pFormat, args);
+#ifdef _WIN32
+    nBytes = custom_vasprintf(&pMessage, pCtx->pFormat, args);
+#else
+    nBytes = vasprintf(&pMessage, pCtx->pFormat, args);
+#endif
+
     va_end(args);
+    (void)nBytes;
 
     if (pMessage == NULL)
     {
