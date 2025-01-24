@@ -237,7 +237,9 @@ void slog_get_date(slog_date_t *pDate)
 static size_t slog_get_tid()
 {
 #ifdef __linux__
-    return (size_t)syscall(__NR_gettid);
+    return syscall(__NR_gettid);
+#elif _WIN32
+    return (size_t)GetCurrentThreadId();
 #else
     return (size_t)pthread_self();
 #endif
@@ -388,7 +390,9 @@ void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...)
     slog_config_t *pCfg = &g_slog.config;
 
     if ((SLOG_FLAGS_CHECK(g_slog.config.nFlags, eFlag)) &&
-       (g_slog.config.nToScreen || g_slog.config.nToFile))
+        (g_slog.config.logCallback ||
+         g_slog.config.nToScreen ||
+         g_slog.config.nToFile))
     {
         slog_context_t ctx;
         slog_get_date(&ctx.date);
@@ -461,7 +465,6 @@ void slog_enable(slog_flag_t eFlag)
 {
     slog_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
-
 
     if (eFlag == SLOG_FLAGS_ALL) pCfg->nFlags = SLOG_FLAGS_ALL;
     else if (!SLOG_FLAGS_CHECK(pCfg->nFlags, eFlag)) pCfg->nFlags |= eFlag;
@@ -544,10 +547,10 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pFile->pHandle = NULL;
     pFile->nCurrDay = 0;
 
-#ifdef WIN32
+#ifdef _WIN32
     /* Enable color support */
-    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
+    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
     GetConsoleMode(hOutput, &dwMode);
     dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     SetConsoleMode(hOutput, dwMode);
@@ -562,10 +565,11 @@ void slog_destroy()
 {
     slog_lock(&g_slog);
 
+    slog_close_file(&g_slog.logFile);
     memset(&g_slog.config, 0, sizeof(g_slog.config));
+
     g_slog.config.pCallbackCtx = NULL;
     g_slog.config.logCallback = NULL;
-    slog_close_file(&g_slog.logFile);
 
     slog_unlock(&g_slog);
 
