@@ -5,7 +5,7 @@
 [![CodeQL](https://github.com/kala13x/slog/actions/workflows/codeql.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/codeql.yml)
 
 ## SLOG - Logging Library
-SLog is cross platform and thread safe logging library for C/C++ with possibilities to easily control verbosity levels, tag and colorize output, log to file, on the fly change configuration parameters, optional log callback for log collection and many more. Read `src/slog.h` file to check out what release version do you have.
+`slog` is a cross-platform and thread-safe logging library for C/C++ that offers rich functionality, including the ability to easily control verbosity levels, tag and colorize output, log to files, change configuration parameters on the fly, and provide an optional log callback for log collection, among many other features. Despite its extensive capabilities, the primary goal of `slog` is to remain as stable as possible while delivering maximum performance. For more details, refer to the `src/slog.h` file to check the release version you are using.
 
 ### Installation
 Installation is possible with `CMake` for all platforms.

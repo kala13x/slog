@@ -51,7 +51,11 @@
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
 #endif
 
+#define SLOG_FILE_PATH_MAX SLOG_PATH_MAX + SLOG_NAME_MAX + SLOG_DATE_MAX
+#define SLOG_ASSERT_RET(x) if (!(x)) return
+
 typedef struct slog_file {
+    char sFilePath[SLOG_FILE_PATH_MAX];
     uint8_t nCurrDay;
     FILE *pHandle;
 } slog_file_t;
@@ -83,77 +87,74 @@ static slog_t g_slog;
 
 static void slog_sync_init(slog_t *pSlog)
 {
-    if (pSlog->nTdSafe)
-    {
-#ifndef _WIN32
-        pthread_mutexattr_t mutexAttr;
-        if (pthread_mutexattr_init(&mutexAttr) ||
-            pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_RECURSIVE) ||
-            pthread_mutex_init(&pSlog->mutex, &mutexAttr) ||
-            pthread_mutexattr_destroy(&mutexAttr))
-        {
-            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n",
-                __FILE__, __LINE__, __func__, errno);
+    SLOG_ASSERT_RET(pSlog->nTdSafe);
 
-            exit(EXIT_FAILURE);
-        }
-#else
-        InitializeCriticalSection(&pSlog->mutex);
-#endif
+#ifndef _WIN32
+    pthread_mutexattr_t mutexAttr;
+    if (pthread_mutexattr_init(&mutexAttr) ||
+        pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_RECURSIVE) ||
+        pthread_mutex_init(&pSlog->mutex, &mutexAttr) ||
+        pthread_mutexattr_destroy(&mutexAttr))
+    {
+        printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n",
+            __FILE__, __LINE__, __func__, errno);
+
+        exit(EXIT_FAILURE);
     }
+#else
+    InitializeCriticalSection(&pSlog->mutex);
+#endif
 }
 
 static void slog_sync_destroy(slog_t *pSlog)
 {
-    if (pSlog->nTdSafe)
-    {
+    SLOG_ASSERT_RET(pSlog->nTdSafe);
+
 #ifndef _WIN32
-        pthread_mutex_destroy(&pSlog->mutex);
+    pthread_mutex_destroy(&pSlog->mutex);
 #else
-        DeleteCriticalSection(&pSlog->mutex);
+    DeleteCriticalSection(&pSlog->mutex);
 #endif
-        pSlog->nTdSafe = 0;
-    }
+
+    pSlog->nTdSafe = 0;
 }
 
-static void slog_lock(slog_t *pSlog)
+static void slog_sync_lock(slog_t *pSlog)
 {
-    if (pSlog->nTdSafe)
-    {
-#ifndef _WIN32
-        if (pthread_mutex_lock(&pSlog->mutex))
-        {
-            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n",
-                __FILE__, __LINE__, __func__, errno);
+    SLOG_ASSERT_RET(pSlog->nTdSafe);
 
-            exit(EXIT_FAILURE);
-        }
-#else
-        EnterCriticalSection(&pSlog->mutex);
-#endif
+#ifndef _WIN32
+    if (pthread_mutex_lock(&pSlog->mutex))
+    {
+        printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n",
+            __FILE__, __LINE__, __func__, errno);
+
+        exit(EXIT_FAILURE);
     }
+#else
+    EnterCriticalSection(&pSlog->mutex);
+#endif
 }
 
-static void slog_unlock(slog_t *pSlog)
+static void slog_sync_unlock(slog_t *pSlog)
 {
-    if (pSlog->nTdSafe)
-    {
-#ifndef _WIN32
-        if (pthread_mutex_unlock(&pSlog->mutex))
-        {
-            printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n",
-                __FILE__, __LINE__, __func__, errno);
+    SLOG_ASSERT_RET(pSlog->nTdSafe);
 
-            exit(EXIT_FAILURE);
-        }
-#else
-        LeaveCriticalSection(&pSlog->mutex);
-#endif
+#ifndef _WIN32
+    if (pthread_mutex_unlock(&pSlog->mutex))
+    {
+        printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n",
+            __FILE__, __LINE__, __func__, errno);
+
+        exit(EXIT_FAILURE);
     }
+#else
+    LeaveCriticalSection(&pSlog->mutex);
+#endif
 }
 
 #ifdef _WIN32
-int custom_vasprintf(char **strp, const char *fmt, va_list args)
+int slog_vasprintf(char **strp, const char *fmt, va_list args)
 {
     va_list loc_args;
 #ifdef va_copy
@@ -171,12 +172,8 @@ int custom_vasprintf(char **strp, const char *fmt, va_list args)
     int result = vsnprintf(*strp, length + 1, fmt, args);
     if (result <= 0)
     {
-        if (*strp != NULL)
-        {
-            free(*strp);
-            *strp = NULL;
-        }
-
+        free(*strp);
+        *strp = NULL;
         return -1;
     }
 
@@ -187,11 +184,11 @@ int custom_vasprintf(char **strp, const char *fmt, va_list args)
     return len;
 }
 
-int custom_asprintf(char **strp, const char *fmt, ...)
+int slog_asprintf(char **strp, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    int result = custom_vasprintf(strp, fmt, args);
+    int result = slog_vasprintf(strp, fmt, args);
     va_end(args);
     return result;
 }
@@ -268,20 +265,22 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
 {
     slog_close_file(pFile);
 
-    char sFilePath[SLOG_PATH_MAX + SLOG_NAME_MAX + SLOG_DATE_MAX];
-    snprintf(sFilePath, sizeof(sFilePath), "%s/%s-%04d-%02d-%02d.log",
-        pCfg->sFilePath, pCfg->sFileName, pDate->nYear, pDate->nMonth, pDate->nDay);
+    if (pCfg->nRotate || pFile->sFilePath[0] == SLOG_NUL)
+    {
+        snprintf(pFile->sFilePath, sizeof(pFile->sFilePath), "%s/%s-%04d-%02d-%02d.log",
+            pCfg->sFilePath, pCfg->sFileName, pDate->nYear, pDate->nMonth, pDate->nDay);
+    }
 
 #ifdef _WIN32
-    if (fopen_s(&pFile->pHandle, sFilePath, "a")) pFile->pHandle = NULL;
+    if (fopen_s(&pFile->pHandle, pFile->sFilePath, "a")) pFile->pHandle = NULL;
 #else
-    pFile->pHandle = fopen(sFilePath, "a");
+    pFile->pHandle = fopen(pFile->sFilePath, "a");
 #endif
 
     if (pFile->pHandle == NULL)
     {
         printf("<%s:%d> %s: [ERROR] Failed to open file: %s (%s)\n",
-            __FILE__, __LINE__, __func__, sFilePath, strerror(errno));
+            __FILE__, __LINE__, __func__, pFile->sFilePath, strerror(errno));
 
         return 0;
     }
@@ -312,6 +311,7 @@ void slog_get_date(slog_date_t *pDate)
 {
     struct tm timeinfo;
     time_t rawtime = time(NULL);
+
 #ifdef _WIN32
     localtime_s(&timeinfo, &rawtime);
 #else
@@ -380,7 +380,7 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
         char *pLog = NULL;
 
 #ifdef _WIN32
-        nLength = custom_asprintf(&pLog, "%s%s%s%s%s", pInfo,
+        nLength = slog_asprintf(&pLog, "%s%s%s%s%s", pInfo,
             pSeparator, pMessage, pReset, pNewLine);
 #else
         nLength = asprintf(&pLog, "%s%s%s%s%s", pInfo,
@@ -457,7 +457,7 @@ static void slog_display_heap(const slog_context_t *pCtx, va_list args)
     char sLogInfo[SLOG_INFO_MAX];
 
 #ifdef _WIN32
-    nBytes = custom_vasprintf(&pMessage, pCtx->pFormat, args);
+    nBytes = slog_vasprintf(&pMessage, pCtx->pFormat, args);
 #else
     nBytes = vasprintf(&pMessage, pCtx->pFormat, args);
 #endif
@@ -490,7 +490,7 @@ static void slog_display_stack(const slog_context_t *pCtx, va_list args)
 
 void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
 
     if ((SLOG_FLAGS_CHECK(g_slog.config.nFlags, eFlag)) &&
@@ -514,7 +514,7 @@ void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...)
         va_end(args);
     }
 
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 const char* slog_version(uint8_t nShort)
@@ -545,14 +545,14 @@ const char* slog_version(uint8_t nShort)
 
 void slog_config_get(slog_config_t *pCfg)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     *pCfg = g_slog.config;
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_config_set(slog_config_t *pCfg)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     slog_config_t *pOldCfg = &g_slog.config;
     slog_file_t *pFile = &g_slog.logFile;
 
@@ -562,34 +562,34 @@ void slog_config_set(slog_config_t *pCfg)
             slog_close_file(pFile); /* Log function will open it again if required */
 
     g_slog.config = *pCfg;
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_enable(slog_flag_t eFlag)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
 
     if (eFlag == SLOG_FLAGS_ALL) pCfg->nFlags = SLOG_FLAGS_ALL;
     else if (!SLOG_FLAGS_CHECK(pCfg->nFlags, eFlag)) pCfg->nFlags |= eFlag;
 
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_disable(slog_flag_t eFlag)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
 
     if (eFlag == SLOG_FLAGS_ALL) pCfg->nFlags = 0;
     else if (SLOG_FLAGS_CHECK(pCfg->nFlags, eFlag)) pCfg->nFlags &= ~eFlag;
 
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_separator_set(const char *pFormat, ...)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
 
     va_list args;
@@ -602,27 +602,32 @@ void slog_separator_set(const char *pFormat, ...)
     }
 
     va_end(args);
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_indent(uint8_t nEnable)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     g_slog.config.nIndent = nEnable;
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_callback_set(slog_cb_t callback, void *pContext)
 {
-    slog_lock(&g_slog);
+    slog_sync_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;
     pCfg->pCallbackCtx = pContext;
     pCfg->logCallback = callback;
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
+    /* Initialize mutex */
+    g_slog.nTdSafe = nTdSafe;
+    slog_sync_init(&g_slog);
+    slog_sync_lock(&g_slog);
+
     slog_config_t *pCfg = &g_slog.config;
     slog_file_t *pFile = &g_slog.logFile;
 
@@ -635,9 +640,9 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     pCfg->sSeparator[1] = '\0';
     pCfg->sFilePath[0] = '.';
     pCfg->sFilePath[1] = '\0';
-    pCfg->nKeepOpen = 0;
-    pCfg->nTraceTid = 0;
+    pCfg->nKeepOpen = 1;
     pCfg->nToScreen = 1;
+    pCfg->nTraceTid = 0;
     pCfg->nUseHeap = 0;
     pCfg->nToFile = 0;
     pCfg->nIndent = 0;
@@ -648,6 +653,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     const char *pFileName = (pName != NULL) ? pName : SLOG_NAME_DEFAULT;
     snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
 
+    pFile->sFilePath[0] = SLOG_NUL;
     pFile->pHandle = NULL;
     pFile->nCurrDay = 0;
 
@@ -660,21 +666,18 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     SetConsoleMode(hOutput, dwMode);
 #endif
 
-    /* Initialize mutex */
-    g_slog.nTdSafe = nTdSafe;
-    slog_sync_init(&g_slog);
+    slog_sync_unlock(&g_slog);
 }
 
 void slog_destroy()
 {
-    slog_lock(&g_slog);
-
+    slog_sync_lock(&g_slog);
     slog_close_file(&g_slog.logFile);
     memset(&g_slog.config, 0, sizeof(g_slog.config));
 
     g_slog.config.pCallbackCtx = NULL;
     g_slog.config.logCallback = NULL;
 
-    slog_unlock(&g_slog);
+    slog_sync_unlock(&g_slog);
     slog_sync_destroy(&g_slog);
 }
