@@ -178,7 +178,7 @@ logCallback  | slog_cb_t         | NULL              | Log callback function to 
 pCallbackCtx | void*             | NULL              | User data pointer passed to log callback.
 eColorFormat | slog_coloring_t   | SLOG_COLORING_TAG | Output coloring format control.
 eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in log output.
-nKeepOpen    | uint8_t           | 0 (disabled)      | Keep the file handle open for future writes.
+nKeepOpen    | uint8_t           | 1 (disabled)      | Keep the file handle open for future writes.
 nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
