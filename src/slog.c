@@ -40,6 +40,7 @@
 #endif
 
 #ifndef _WIN32
+#include <pthread.h>
 #include <unistd.h>
 #else
 #include <windows.h>
@@ -57,7 +58,11 @@ typedef struct slog_file {
 } slog_file_t;
 
 typedef struct slog {
+#ifdef _WIN32
+    CRITICAL_SECTION mutex;
+#else
     pthread_mutex_t mutex;
+#endif
     slog_config_t config;
     slog_file_t logFile;
     uint8_t nTdSafe;
@@ -79,40 +84,72 @@ static slog_t g_slog;
 
 static void slog_sync_init(slog_t *pSlog)
 {
-    if (!pSlog->nTdSafe) return;
-    pthread_mutexattr_t mutexAttr;
-
-    if (pthread_mutexattr_init(&mutexAttr) ||
-        pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_RECURSIVE) ||
-        pthread_mutex_init(&pSlog->mutex, &mutexAttr) ||
-        pthread_mutexattr_destroy(&mutexAttr))
+    if (pSlog->nTdSafe)
     {
-        printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n", 
-            __FILE__, __LINE__, __func__, errno);
+#ifndef _WIN32
+        pthread_mutexattr_t mutexAttr;
+        if (pthread_mutexattr_init(&mutexAttr) ||
+            pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_RECURSIVE) ||
+            pthread_mutex_init(&pSlog->mutex, &mutexAttr) ||
+            pthread_mutexattr_destroy(&mutexAttr))
+        {
+            printf("<%s:%d> %s: [ERROR] Can not initialize mutex: %d\n",
+                __FILE__, __LINE__, __func__, errno);
 
-        exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
+        }
+#else
+        InitializeCriticalSection(&pSlog->mutex);
+#endif
+    }
+}
+
+static void slog_sync_destroy(slog_t *pSlog)
+{
+    if (pSlog->nTdSafe)
+    {
+#ifndef _WIN32
+        pthread_mutex_destroy(&pSlog->mutex);
+#else
+        DeleteCriticalSection(&pSlog->mutex);
+#endif
+        pSlog->nTdSafe = 0;
     }
 }
 
 static void slog_lock(slog_t *pSlog)
 {
-    if (pSlog->nTdSafe && pthread_mutex_lock(&pSlog->mutex))
+    if (pSlog->nTdSafe)
     {
-        printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n", 
-            __FILE__, __LINE__, __func__, errno);
+#ifndef _WIN32
+        if (pthread_mutex_lock(&pSlog->mutex))
+        {
+            printf("<%s:%d> %s: [ERROR] Can not lock mutex: %d\n",
+                __FILE__, __LINE__, __func__, errno);
 
-        exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
+        }
+#else
+        EnterCriticalSection(&pSlog->mutex);
+#endif
     }
 }
 
 static void slog_unlock(slog_t *pSlog)
 {
-    if (pSlog->nTdSafe && pthread_mutex_unlock(&pSlog->mutex))
+    if (pSlog->nTdSafe)
     {
-        printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n", 
-            __FILE__, __LINE__, __func__, errno);
-                
-        exit(EXIT_FAILURE);
+#ifndef _WIN32
+        if (pthread_mutex_unlock(&pSlog->mutex))
+        {
+            printf("<%s:%d> %s: [ERROR] Can not unlock mutex: %d\n",
+                __FILE__, __LINE__, __func__, errno);
+
+            exit(EXIT_FAILURE);
+        }
+#else
+        LeaveCriticalSection(&pSlog->mutex);
+#endif
     }
 }
 
@@ -573,10 +610,5 @@ void slog_destroy()
     g_slog.config.logCallback = NULL;
 
     slog_unlock(&g_slog);
-
-    if (g_slog.nTdSafe)
-    {
-        pthread_mutex_destroy(&g_slog.mutex);
-        g_slog.nTdSafe = 0;
-    }
+    slog_sync_destroy(&g_slog);
 }

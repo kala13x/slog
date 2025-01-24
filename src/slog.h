@@ -30,13 +30,12 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
-#include <pthread.h>
 #include <stdint.h>
 
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUMBER       38
+#define SLOG_BUILD_NUMBER       39
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
