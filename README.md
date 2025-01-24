@@ -17,7 +17,7 @@ cmake .. && make
 sudo make install
 ```
 
-If for some reason CMake is not available on your system, you can try the `Makefile` that comes with the project (Linux only):
+If for some reason `CMake` is not available on your system, you can try the `Makefile` that comes with the project (Linux only):
 ```bash
 git clone https://github.com/kala13x/slog.git
 cd slog
