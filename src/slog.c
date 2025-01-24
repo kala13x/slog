@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- *  Copyleft (C) 2015-2023  Sun Dro (s.kalatoz@gmail.com)
+ *  Copyleft (C) 2015-2025  Sandro Kalatozishvili (s.kalatoz@gmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
