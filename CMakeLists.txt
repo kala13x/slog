@@ -6,9 +6,12 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_package(RT REQUIRED)
 
-add_compile_options(-Wall -O2)
+IF (WIN32)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Od /W3")
+ELSE()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall")
+ENDIF()
 
 add_library(slog STATIC src/slog.c src/slog.h)
 
