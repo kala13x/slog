@@ -1,6 +1,7 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-brightgreen.svg?)](https://github.com/kala13x/slog/blob/master/LICENSE)
-[![CMake](https://github.com/kala13x/slog/actions/workflows/cmake.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/cmake.yml)
-[![C/C++ CI](https://github.com/kala13x/slog/actions/workflows/make.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/make.yml)
+[![Linux](https://github.com/kala13x/slog/actions/workflows/linux.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/linux.yml)
+[![MacOS](https://github.com/kala13x/slog/actions/workflows/macos.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/macos.yml)
+[![Windows](https://github.com/kala13x/slog/actions/workflows/windows.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/windows.yml)
 [![CodeQL](https://github.com/kala13x/slog/actions/workflows/codeql.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/codeql.yml)
 
 ## SLOG - Logging Library
