@@ -27,7 +27,6 @@
 #endif
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -40,11 +39,13 @@
 #include <syscall.h>
 #endif
 
-#include <sys/time.h>
-
-#ifdef WIN32
+#ifndef _WIN32
+#include <unistd.h>
+#else
 #include <windows.h>
 #endif
+
+#include <sys/time.h>
 
 #ifndef PTHREAD_MUTEX_RECURSIVE 
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
@@ -219,7 +220,7 @@ void slog_get_date(slog_date_t *pDate)
 {
     struct tm timeinfo;
     time_t rawtime = time(NULL);
-#ifdef WIN32
+#ifdef _WIN32
     localtime_s(&timeinfo, &rawtime);
 #else
     localtime_r(&rawtime, &timeinfo);
