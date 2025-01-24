@@ -42,11 +42,10 @@
 #ifndef _WIN32
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/time.h>
 #else
 #include <windows.h>
 #endif
-
-#include <sys/time.h>
 
 #ifndef PTHREAD_MUTEX_RECURSIVE 
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
@@ -248,9 +247,20 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
 
 uint16_t slog_get_usec()
 {
+#ifdef _WIN32
+    FILETIME ft;
+    ULARGE_INTEGER ull;
+
+    GetSystemTimeAsFileTime(&ft);
+    ull.LowPart = ft.dwLowDateTime;
+    ull.HighPart = ft.dwHighDateTime;
+    uint64_t microseconds = ull.QuadPart / 10;
+    return (uint16_t)((microseconds / 1000) % 1000);
+#else
     struct timeval tv;
     if (gettimeofday(&tv, NULL) < 0) return 0;
     return (uint16_t)(tv.tv_usec / 1000);
+#endif
 }
 
 void slog_get_date(slog_date_t *pDate)
