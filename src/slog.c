@@ -559,7 +559,10 @@ void slog_config_set(slog_config_t *pCfg)
     if (!pCfg->nToFile ||
         strncmp(pOldCfg->sFilePath, pCfg->sFilePath, sizeof(pOldCfg->sFilePath)) ||
         strncmp(pOldCfg->sFileName, pCfg->sFileName, sizeof(pOldCfg->sFileName)))
-            slog_close_file(pFile); /* Log function will open it again if required */
+    {
+        slog_close_file(pFile); /* Log function will open it again if required */
+        pFile->sFilePath[0] = SLOG_NUL;
+    }
 
     g_slog.config = *pCfg;
     slog_sync_unlock(&g_slog);
