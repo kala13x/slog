@@ -279,8 +279,16 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
 
     if (pFile->pHandle == NULL)
     {
+        char sError[SLOG_INFO_MAX];
+
+#ifdef _WIN32
+        strerror_s(sError, sizeof(sError), errno);
+#else
+        strerror_r(errno, sError, sizeof(sError));
+#endif
+
         printf("<%s:%d> %s: [ERROR] Failed to open file: %s (%s)\n",
-            __FILE__, __LINE__, __func__, pFile->sFilePath, strerror(errno));
+            __FILE__, __LINE__, __func__, pFile->sFilePath, sError);
 
         return 0;
     }

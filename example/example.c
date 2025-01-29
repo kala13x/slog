@@ -84,8 +84,15 @@ int main()
     /* Debug message with string and integer */
     slog_debug("Debug message with enabled thread id tracing");
 
+    char sError[SLOG_INFO_MAX];
+#ifdef _WIN32
+    strerror_s(sError, sizeof(sError), errno);
+#else
+    strerror_r(errno, sError, sizeof(sError));
+#endif
+
     /* Error message with errno string (in this case must be 'Success')*/
-    slog_error("Error message with errno string: %s", strerror(errno));
+    slog_error("Error message with errno string: %s", sError);
 
     /* Disable trace tag */
     slog_disable(SLOG_TRACE);
