@@ -33,9 +33,9 @@ int main()
     /* Used variables */
     slog_config_t cfg;
     int nInteger = 69;
-    char sBuffer[12];
+    char sBuffer[14];
 
-    strncpy(sBuffer, sizeof(sBuffer), "test string");
+    strncpy(sBuffer, "test string", sizeof(sBuffer));
     //uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG | SLOG_NOTE;
 
     /* Initialize slog and allow only error and not tagged output */
