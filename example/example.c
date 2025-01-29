@@ -35,7 +35,7 @@ int main()
     int nInteger = 69;
     char sBuffer[14];
 
-    strncpy(sBuffer, "test string", sizeof(sBuffer));
+    snprintf(sBuffer, sizeof(sBuffer), "test string");
     //uint16_t nLogFlags = SLOG_ERROR | SLOG_NOTAG | SLOG_NOTE;
 
     /* Initialize slog and allow only error and not tagged output */
