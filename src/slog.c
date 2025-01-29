@@ -610,13 +610,6 @@ void slog_separator_set(const char *pFormat, ...)
     slog_sync_unlock(&g_slog);
 }
 
-void slog_indent(uint8_t nEnable)
-{
-    slog_sync_lock(&g_slog);
-    g_slog.config.nIndent = nEnable;
-    slog_sync_unlock(&g_slog);
-}
-
 void slog_callback_set(slog_cb_t callback, void *pContext)
 {
     slog_sync_lock(&g_slog);

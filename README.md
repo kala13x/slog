@@ -314,9 +314,6 @@ slog_config_t slgCfg;
 slog_config_get(&slgCfg);
 slgCfg.nIndnets = 1;
 slog_config_set(&slgCfg);
-
-/* You can also enable indents like that */
-slog_indent(1); // Any value except 0 will enable it
 ```
 
 With indentations enabled:

@@ -181,7 +181,6 @@ void slog_config_set(slog_config_t *pCfg);
 
 void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
-void slog_indent(uint8_t nEnable);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);
