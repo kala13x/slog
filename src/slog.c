@@ -302,12 +302,12 @@ void slog_get_date(slog_date_t *pDate)
     uli.LowPart = ft.dwLowDateTime;
     uli.HighPart = ft.dwHighDateTime;
 
-    pDate->nYear = st.wYear;
-    pDate->nMonth = st.wMonth;
-    pDate->nDay = st.wDay;
-    pDate->nHour = st.wHour;
-    pDate->nMin = st.wMinute;
-    pDate->nSec = st.wSecond;
+    pDate->nYear = (uint16_t)st.wYear;
+    pDate->nMonth = (uint8_t)st.wMonth;
+    pDate->nDay = (uint8_t)st.wDay;
+    pDate->nHour = (uint8_t)st.wHour;
+    pDate->nMin = (uint8_t)st.wMinute;
+    pDate->nSec = (uint8_t)st.wSecond;
     pDate->nUsec = (uint16_t)((uli.QuadPart / 10) % 1000);
 }
 #else
