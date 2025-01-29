@@ -88,7 +88,8 @@ int main()
 #ifdef _WIN32
     strerror_s(sError, sizeof(sError), errno);
 #else
-    strerror_r(errno, sError, sizeof(sError));
+    char *pError = strerror_r(errno, sError, sizeof(sError));
+    (void)pError;
 #endif
 
     /* Error message with errno string (in this case must be 'Success')*/
