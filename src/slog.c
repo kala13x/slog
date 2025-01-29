@@ -289,43 +289,45 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
     return 1;
 }
 
-uint16_t slog_get_usec()
-{
 #ifdef _WIN32
-    FILETIME ft;
-    ULARGE_INTEGER ull;
-
-    GetSystemTimeAsFileTime(&ft);
-    ull.LowPart = ft.dwLowDateTime;
-    ull.HighPart = ft.dwHighDateTime;
-    uint64_t microseconds = ull.QuadPart / 10;
-    return (uint16_t)((microseconds / 1000) % 1000);
-#else
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) < 0) return 0;
-    return (uint16_t)(tv.tv_usec / 1000);
-#endif
-}
-
 void slog_get_date(slog_date_t *pDate)
 {
-    struct tm timeinfo;
-    time_t rawtime = time(NULL);
+    SYSTEMTIME st;
+    FILETIME ft;
+    ULARGE_INTEGER uli;
 
-#ifdef _WIN32
-    localtime_s(&timeinfo, &rawtime);
-#else
-    localtime_r(&rawtime, &timeinfo);
-#endif
+    GetSystemTime(&st);
+    GetSystemTimeAsFileTime(&ft);
 
-    pDate->nYear = timeinfo.tm_year + 1900;
-    pDate->nMonth = timeinfo.tm_mon + 1;
-    pDate->nDay = timeinfo.tm_mday;
-    pDate->nHour = timeinfo.tm_hour;
-    pDate->nMin = timeinfo.tm_min;
-    pDate->nSec = timeinfo.tm_sec;
-    pDate->nUsec = slog_get_usec();
+    uli.LowPart = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+
+    pDate->nYear = st.wYear;
+    pDate->nMonth = st.wMonth;
+    pDate->nDay = st.wDay;
+    pDate->nHour = st.wHour;
+    pDate->nMin = st.wMinute;
+    pDate->nSec = st.wSecond;
+    pDate->nUsec = (uint16_t)((uli.QuadPart / 10) % 1000);
 }
+#else
+void slog_get_date(slog_date_t *pDate)
+{
+    struct timeval tv;
+    struct tm tm_info;
+
+    gettimeofday(&tv, NULL);
+    localtime_r(&tv.tv_sec, &tm_info);
+
+    pDate->nYear = tm_info.tm_year + 1900;
+    pDate->nMonth = tm_info.tm_mon + 1;
+    pDate->nDay = tm_info.tm_mday;
+    pDate->nHour = tm_info.tm_hour;
+    pDate->nMin = tm_info.tm_min;
+    pDate->nSec = tm_info.tm_sec;
+    pDate->nUsec = (uint16_t)(tv.tv_usec / 1000);
+}
+#endif
 
 static size_t slog_get_tid()
 {
