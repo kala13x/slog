@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
+#include <stddef.h>
 #include <stdint.h>
 
 /* SLog version information */
