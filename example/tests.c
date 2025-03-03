@@ -15,58 +15,60 @@
 #include <limits.h>
 #include <slog.h>
 
+#define TEST_PASSED "\033[0;32mPASSED\033[0m"
+#define TEST_FAILED "\033[0;31mFAILED\033[0m"
+
 int test_slog_basic()
 {
-    printf("Running test_slog_basic...\n");
+    printf("=============> Running test_slog_basic...\n");
     slog_init("test_log", SLOG_FLAGS_ALL, 0);
     slog_info("This is an info log");
     slog_warn("This is a warning log");
     slog_error("This is an error log");
     slog_destroy();
-    printf("test_slog_basic passed.\n\n");
+    printf("=============> test_slog_basic %s.\n\n", TEST_PASSED);
     return 0;
 }
 
 int test_slog_file_logging()
 {
-    printf("Running test_slog_file_logging...\n");
+    printf("=============> Running test_slog_file_logging...\n");
+    slog_init("file_test_log", SLOG_FLAGS_ALL, 0);
 
     slog_config_t config;
-    slog_init("file_test_log", SLOG_FLAGS_ALL, 0);
     slog_config_get(&config);
     config.nToFile = 1;
-    strncpy(config.sFilePath, "./", sizeof(config.sFilePath));
     slog_config_set(&config);
+
+    slog_info("Logging to file test_log");
 
     char file_path[PATH_MAX];
     slog_get_full_path(file_path, sizeof(file_path));
-
-    slog_info("Logging to file test_log");
     slog_destroy();
     
     FILE *log_file = fopen(file_path, "r");
-    if (log_file)
+    if (log_file != NULL)
     {
         fclose(log_file);
-        printf("File logging test passed.\n\n");
+        printf("=============> File logging test %s.\n\n", TEST_PASSED);
         return 0;
     }
     else
     {
-        printf("File logging test FAILED.\n\n");
+        printf("=============> File logging test %s.\n\n", TEST_FAILED);
         return 1;
     }
 }
 
 int test_slog_formatting()
 {
-    printf("Running test_slog_formatting...\n");
+    printf("=============> Running test_slog_formatting...\n");
     slog_init("format_test_log", SLOG_FLAGS_ALL, 0);
     
     slog_info("Formatted message: %d, %s, %.2f", 42, "hello", 3.1415);
     
     slog_destroy();
-    printf("test_slog_formatting passed.\n\n");
+    printf("=============> test_slog_formatting %s.\n\n", TEST_PASSED);
     return 0;
 }
 
@@ -80,10 +82,10 @@ int main()
 
     if (failed > 0)
     {
-        printf("One or more tests failed.\n");
+        printf("=============> %d test(s) %s.\n", failed, TEST_FAILED);
         return 1;  // Fail the GitHub Actions pipeline
     }
 
-    printf("All tests passed successfully.\n");
+    printf("=============> All tests %s successfully.\n", TEST_PASSED);
     return 0;  // Pass the GitHub Actions pipeline
 }

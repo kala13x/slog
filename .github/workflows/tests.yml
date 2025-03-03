@@ -1,4 +1,4 @@
-name: Valgrind Tests
+name: Valgrind
 
 on:
   push:
