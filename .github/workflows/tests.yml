@@ -1,11 +1,13 @@
-name: SLog CI
+name: Valgrind Tests
 
 on:
   push:
+    branches: [ "master" ]
   pull_request:
+    branches: [ "master" ]
 
 jobs:
-  build-and-test:
+  tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,13 +21,13 @@ jobs:
         run: cmake . && make && sudo make install
 
       - name: Compile Tests
-        run: gcc -o test_slog tests.c -lslog -g
+        run: gcc -o ./example/test_slog ./example/tests.c -lslog -g
 
       - name: Compile Example
-        run: gcc -o slog_example example.c -lslog -g
+        run: gcc -o ./example/slog_example ./example/example.c -lslog -g
 
       - name: Run Valgrind Memory Check With Tests
-        run: valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 ./test_slog
+        run: valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 ./example/test_slog
 
       - name: Run Valgrind Memory Check With Example
-        run: valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 ./slog_example
+        run: valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 ./example/slog_example
