@@ -182,6 +182,7 @@ void slog_config_set(slog_config_t *pCfg);
 
 void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
+size_t slog_get_full_path(char *pFilePath, size_t nSize);
 
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);

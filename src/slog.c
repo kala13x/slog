@@ -627,6 +627,20 @@ void slog_callback_set(slog_cb_t callback, void *pContext)
     slog_sync_unlock(&g_slog);
 }
 
+size_t slog_get_full_path(char *pFilePath, size_t nSize)
+{
+    if (pFilePath == NULL || !nSize) return 0;
+    slog_sync_lock(&g_slog);
+
+    slog_file_t *pFile = &g_slog.logFile;
+    int nLength = snprintf(pFilePath, nSize, "%s", pFile->sFilePath);
+    if (nLength < 0) nLength = 0;
+    pFilePath[nLength] = SLOG_NUL;
+
+    slog_sync_unlock(&g_slog);
+    return (size_t)nLength;
+}
+
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
     /* Initialize mutex */

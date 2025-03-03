@@ -20,7 +20,7 @@ int logCallback(const char *pLog, size_t nLength, slog_flag_t eFlag, void *pCtx)
     return 0;
 }
 
-void greet() 
+void greet()
 {
     /* Get and print slog version */
     slog("=========================================");
