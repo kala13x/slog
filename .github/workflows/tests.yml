@@ -21,7 +21,7 @@ jobs:
         run: cmake . && make && sudo make install
 
       - name: Compile Tests
-        run: gcc -o ./example/test_slog ./example/tests.c -lslog -g
+        run: gcc -o ./example/test_slog ./example/tests.c -lslog -lpthread -g
 
       - name: Compile Example
         run: gcc -o ./example/slog_example ./example/example.c -lslog -g

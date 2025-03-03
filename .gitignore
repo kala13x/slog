@@ -32,5 +32,7 @@
 *.dSYM/
 
 # Binary files
+example/test_slog
 example/example
 build/
+*.log
