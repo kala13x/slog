@@ -2,6 +2,7 @@
 [![Linux](https://github.com/kala13x/slog/actions/workflows/linux.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/linux.yml)
 [![MacOS](https://github.com/kala13x/slog/actions/workflows/macos.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/macos.yml)
 [![Windows](https://github.com/kala13x/slog/actions/workflows/windows.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/windows.yml)
+[![Valgrind](https://github.com/kala13x/slog/actions/workflows/tests.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/tests.yml)
 [![CodeQL](https://github.com/kala13x/slog/actions/workflows/codeql.yml/badge.svg)](https://github.com/kala13x/slog/actions/workflows/codeql.yml)
 
 ## SLOG - Logging Library
