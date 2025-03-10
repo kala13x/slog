@@ -154,43 +154,43 @@ static void slog_sync_unlock(slog_t *pSlog)
 }
 
 #ifdef _WIN32
-int slog_vasprintf(char **strp, const char *fmt, va_list args)
+int slog_vasprintf(char **ppStr, const char *pFmt, va_list args)
 {
-    va_list loc_args;
+    va_list locArgs;
 #ifdef va_copy
-    va_copy(loc_args, args);
+    va_copy(locArgs, args);
 #else
-    memcpy(&loc_args, &args, sizeof(va_list));
+    memcpy(&locArgs, &args, sizeof(va_list));
 #endif
 
-    int length = vsnprintf(NULL, 0, fmt, loc_args);
-    if (length < 0) return -1;
+    int nLength = vsnprintf(NULL, 0, pFmt, locArgs);
+    if (nLength < 0) return -1;
 
-    *strp = (char *)malloc(length + 1);
-    if (*strp == NULL) return -1;
+    *ppStr = (char *)malloc(nLength + 1);
+    if (*ppStr == NULL) return -1;
 
-    int result = vsnprintf(*strp, length + 1, fmt, args);
-    if (result <= 0)
+    int nResult = vsnprintf(*ppStr, nLength + 1, pFmt, args);
+    if (nResult <= 0)
     {
-        free(*strp);
-        *strp = NULL;
+        free(*ppStr);
+        *ppStr = NULL;
         return -1;
     }
 
-    int len = result < length ? result : length;
-    char *final = *strp;
-    final[len] = '\0';
+    int nLen = nResult < nLength ? nResult : nLength;
+    char *pFinal = *ppStr;
+    pFinal[nLen] = '\0';
 
-    return len;
+    return nLen;
 }
 
-int slog_asprintf(char **strp, const char *fmt, ...)
+int slog_asprintf(char **ppStr, const char *pFmt, ...)
 {
     va_list args;
-    va_start(args, fmt);
-    int result = slog_vasprintf(strp, fmt, args);
+    va_start(args, pFmt);
+    int nResult = slog_vasprintf(ppStr, pFmt, args);
     va_end(args);
-    return result;
+    return nResult;
 }
 #endif
 
@@ -498,7 +498,7 @@ static void slog_display_stack(const slog_context_t *pCtx, va_list args)
     slog_display_message(pCtx, sLogInfo, nLength, sMessage);
 }
 
-void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...)
+void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char *pFormat, ...)
 {
     slog_sync_lock(&g_slog);
     slog_config_t *pCfg = &g_slog.config;

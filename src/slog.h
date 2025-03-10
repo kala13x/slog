@@ -36,7 +36,7 @@ extern "C" {
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
 #define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUMBER       47
+#define SLOG_BUILD_NUMBER       48
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -188,7 +188,7 @@ void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);
 
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
-void slog_display(slog_flag_t eFlag, uint8_t nNewLine, char *pFormat, ...);
+void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char *pFormat, ...);
 void slog_destroy(); // Required only if (nTdSafe > 0 || nKeepOpen > 0)
 
 #ifdef __cplusplus
