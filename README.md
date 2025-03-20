@@ -172,11 +172,11 @@ Parameter    | Type              | Default           | Description
 sFileName    | char array        | "slog"            | Output file name for logs.
 sFilePath    | char array        | "./"              | Output file path for logs.
 sSeparator   | char array        | " "               | Separator between info and log.
-logCallback  | slog_cb_t         | NULL              | Log callback function to collect logs.
+logCallback  | slog_cb_t         | NULL              | Centralized log callback function.
 pCallbackCtx | void*             | NULL              | User data pointer passed to log callback.
 eColorFormat | slog_coloring_t   | SLOG_COLORING_TAG | Output coloring format control.
-eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in log output.
-nKeepOpen    | uint8_t           | 1 (disabled)      | Keep the file handle open for future writes.
+eDateControl | slog_date_ctrl_t  | SLOG_TIME_ONLY    | Time and date control in the log output.
+nKeepOpen    | uint8_t           | 1 (enabled)       | Keep the file handle open for future writes.
 nTraceTid    | uint8_t           | 0 (disabled)      | Trace thread ID and display in output.
 nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen logging.
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
@@ -184,7 +184,7 @@ nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file lo
 nIndent      | uint8_t           | 0 (disabled)      | Enable or disable indentations.
 nRotate      | uint8_t           | 1 (enabled)       | Create new log file for each day.
 nFlush       | uint8_t           | 0 (disabled)      | Flush output file after log.
-nFlags       | uint16_t          | 0 (no logs)       | Allowed log level flags.
+nFlags       | uint16_t          | 0 (no logs)       | Enabled log flags.
 
 Any of those parameters above can be changed at runtime with the `slog_config_set()` function.
 
