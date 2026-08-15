@@ -4,7 +4,7 @@ project(slog LANGUAGES C)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-IF (WIN32)
+IF (WIN32 AND MSVC)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Od /W3")
 ELSE()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall")
