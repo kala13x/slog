@@ -180,7 +180,7 @@ nToScreen    | uint8_t           | 1 (enabled)       | Enable or disable screen 
 nUseHeap     | uint8_t           | 0 (disabled)      | Use dynamic allocation for output.
 nToFile      | uint8_t           | 0 (disabled)      | Enable or disable file logging.
 nIndent      | uint8_t           | 0 (disabled)      | Enable or disable indentations.
-nRotate      | uint8_t           | 1 (enabled)       | Create new log file for each day.
+nRotate      | uint8_t           | 1 (enabled)       | Archive the log file at the end of each day.
 nFlush       | uint8_t           | 0 (disabled)      | Flush output file after log.
 nFlags       | uint16_t          | 0 (no logs)       | Enabled log flags.
 
@@ -222,6 +222,56 @@ slgCfg.nToFile = 1;
 /* Tread safe call to update slog configuration */
 slog_config_set(&slgCfg);
 ```
+
+Every field also has its own thread safe setter, so a single parameter can be changed
+without reading the whole configuration first:
+
+```c
+slog_path_set("./logs");            // Output directory for the log file
+slog_name_set("myproject");         // Base name of the log file
+slog_color_format_set(SLOG_COLORING_FULL);
+slog_date_format_set(SLOG_DATE_FULL);
+slog_screen_set(1);                 // Screen logging
+slog_file_set(1);                   // File logging
+slog_flush_set(1);                  // Flush the output file after each log
+slog_indent_set(1);                 // Indentations
+slog_trace_tid_set(1);              // Thread ID tracing
+slog_use_heap_set(1);               // Dynamic allocation for the output
+slog_flags_set(SLOG_FLAGS_ALL);     // Replace the enabled log flags
+uint16_t nFlags = slog_flags_get(); // Read the enabled log flags
+```
+
+`slog_path_set()` and `slog_name_set()` return the number of copied characters and close
+the currently open file handle, so the next log entry is written to the new destination.
+
+You can also check whether the logger has been initialized:
+
+```c
+if (!slog_is_init()) slog_init("myproject", SLOG_FLAGS_ALL, 1);
+```
+
+### Log rotation
+While `nRotate` is enabled *(default)*, `slog` writes into a single active file named
+after `sFileName`, and archives it under a dated name as soon as the day changes:
+
+```
+./myproject.log              <- the active log file, always the same name
+./myproject-2025-03-22.log   <- archived when the day changed
+./myproject-2025-03-23.log
+```
+
+The day change is detected both while the process is running and at startup, so a
+service that was restarted on the next day still archives the file left behind by the
+previous run, using the day that file actually belongs to.
+
+If `nRotate` is disabled, everything is appended to `<sFileName>.log` and no archives
+are created.
+
+> **Note for users upgrading from 1.8.x and earlier:** the active log file used to
+> carry the date in its name *(`myproject-2025-03-23.log`)*. It is now always
+> `myproject.log`, and only archived files carry a date. Older files are left
+> untouched, but scripts that tail or collect logs by the dated name need to be
+> pointed at the new active file.
 
 ### Dynamic allocation
 If the output message is larger than the slog default message limit (8196 bytes) there is a possibility to enable dynamic allocation and use the heap for output messages:
@@ -366,14 +416,19 @@ printf("slog version: %s", slog_version(0));
 
 The output will be something like this:
 ```
-slog version: 1.8 build 22 (Dec 14 2020)
+slog version: 1.9 build 49 (16Aug2026)
 ```
+
+Both strings are assembled by the preprocessor at compile time, so `slog_version()`
+just returns a pointer to constant storage and is safe to call from any thread at any
+time, including before `slog_init()`.
 
 There are also definitions that can be used to check the version without using the function.
 
 - `SLOG_VERSION_MAJOR` - Major version of the library.
 - `SLOG_VERSION_MINOR` - Minor version of the library.
 - `SLOG_BUILD_NUMBER` - Build number.
+- `SLOG_RELEASE_DATE` - Release date of the build.
 
 
 ### Output

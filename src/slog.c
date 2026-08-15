@@ -33,6 +33,8 @@
 #include <limits.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "slog.h"
 
 #ifdef __linux__
@@ -45,17 +47,23 @@
 #include <sys/time.h>
 #else
 #include <windows.h>
+#include <share.h>
 #endif
 
-#ifndef PTHREAD_MUTEX_RECURSIVE 
+#ifndef PTHREAD_MUTEX_RECURSIVE
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE_NP
 #endif
 
-#define SLOG_FILE_PATH_MAX SLOG_PATH_MAX + SLOG_NAME_MAX + SLOG_DATE_MAX
+#define SLOG_FILE_PATH_MAX (SLOG_PATH_MAX + SLOG_NAME_MAX + SLOG_DATE_MAX)
 #define SLOG_ASSERT_RET(x) if (!(x)) return
+
+#define SLOG_STRFY_RAW(x) #x
+#define SLOG_STRFY(x) SLOG_STRFY_RAW(x)
 
 typedef struct slog_file {
     char sFilePath[SLOG_FILE_PATH_MAX];
+    uint16_t nCurrYear;
+    uint8_t nCurrMonth;
     uint8_t nCurrDay;
     FILE *pHandle;
 } slog_file_t;
@@ -78,11 +86,18 @@ typedef struct slog_context {
     uint8_t nNewLine;
 } slog_context_t;
 
-static volatile int g_nHaveSlogVerShort = 0;
-static volatile int g_nHaveSlogVerLong = 0;
-static char g_slogVerShort[128];
-static char g_slogVerLong[256];
+static const char g_slogVerShort[] =
+    SLOG_STRFY(SLOG_VERSION_MAJOR) "."
+    SLOG_STRFY(SLOG_VERSION_MINOR) "."
+    SLOG_STRFY(SLOG_BUILD_NUMBER);
 
+static const char g_slogVerLong[] =
+    SLOG_STRFY(SLOG_VERSION_MAJOR) "."
+    SLOG_STRFY(SLOG_VERSION_MINOR) " build "
+    SLOG_STRFY(SLOG_BUILD_NUMBER)
+    " (" SLOG_RELEASE_DATE ")";
+
+static volatile int g_nSlogInit = 0;
 static slog_t g_slog;
 
 static void slog_sync_init(slog_t *pSlog)
@@ -252,6 +267,65 @@ static const char* slog_get_color(slog_flag_t eFlag)
     return SLOG_EMPTY;
 }
 
+#ifdef _WIN32
+void slog_get_date(slog_date_t *pDate)
+{
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+
+    pDate->nYear = (uint16_t)st.wYear;
+    pDate->nMonth = (uint8_t)st.wMonth;
+    pDate->nDay = (uint8_t)st.wDay;
+    pDate->nHour = (uint8_t)st.wHour;
+    pDate->nMin = (uint8_t)st.wMinute;
+    pDate->nSec = (uint8_t)st.wSecond;
+    pDate->nUsec = (uint16_t)st.wMilliseconds;
+}
+#else
+void slog_get_date(slog_date_t *pDate)
+{
+    struct timeval tv;
+    struct tm tm_info;
+
+    gettimeofday(&tv, NULL);
+    localtime_r(&tv.tv_sec, &tm_info);
+
+    pDate->nYear = tm_info.tm_year + 1900;
+    pDate->nMonth = tm_info.tm_mon + 1;
+    pDate->nDay = tm_info.tm_mday;
+    pDate->nHour = tm_info.tm_hour;
+    pDate->nMin = tm_info.tm_min;
+    pDate->nSec = tm_info.tm_sec;
+    pDate->nUsec = (uint16_t)(tv.tv_usec / 1000);
+}
+#endif
+
+uint16_t slog_get_usec()
+{
+    slog_date_t date;
+    slog_get_date(&date);
+    return date.nUsec;
+}
+
+static void slog_date_from_epoch(slog_date_t *pDate, time_t nTime)
+{
+    struct tm tm_info;
+
+#ifdef _WIN32
+    localtime_s(&tm_info, &nTime);
+#else
+    localtime_r(&nTime, &tm_info);
+#endif
+
+    pDate->nYear = (uint16_t)(tm_info.tm_year + 1900);
+    pDate->nMonth = (uint8_t)(tm_info.tm_mon + 1);
+    pDate->nDay = (uint8_t)tm_info.tm_mday;
+    pDate->nHour = (uint8_t)tm_info.tm_hour;
+    pDate->nMin = (uint8_t)tm_info.tm_min;
+    pDate->nSec = (uint8_t)tm_info.tm_sec;
+    pDate->nUsec = 0;
+}
+
 static void slog_close_file(slog_file_t *pFile)
 {
     if (pFile->pHandle != NULL)
@@ -261,18 +335,61 @@ static void slog_close_file(slog_file_t *pFile)
     }
 }
 
-static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, const slog_date_t *pDate)
+/* Move the active log file into the dated archive of the day it belongs to */
+static void slog_rotate_file(slog_file_t *pFile, const slog_config_t *pCfg)
 {
+    struct stat statBuf;
     slog_close_file(pFile);
 
-    if (pCfg->nRotate || pFile->sFilePath[0] == SLOG_NUL)
+    memset(&statBuf, 0, sizeof(statBuf));
+    if (stat(pFile->sFilePath, &statBuf) < 0) return;
+
+    char sRotatedPath[SLOG_FILE_PATH_MAX];
+    int nLength = snprintf(sRotatedPath, sizeof(sRotatedPath), "%s/%s-%04d-%02d-%02d.log",
+        pCfg->sFilePath, pCfg->sFileName, pFile->nCurrYear, pFile->nCurrMonth, pFile->nCurrDay);
+
+    if (nLength <= 0) return;
+
+#ifdef _WIN32
+    /* Unlike POSIX, rename() on Windows fails if the destination already exists */
+    remove(sRotatedPath);
+#endif
+
+    rename(pFile->sFilePath, sRotatedPath);
+}
+
+static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, const slog_date_t *pDate)
+{
+    struct stat statBuf;
+    slog_close_file(pFile);
+
+    if (pFile->sFilePath[0] == SLOG_NUL)
     {
-        snprintf(pFile->sFilePath, sizeof(pFile->sFilePath), "%s/%s-%04d-%02d-%02d.log",
-            pCfg->sFilePath, pCfg->sFileName, pDate->nYear, pDate->nMonth, pDate->nDay);
+        snprintf(pFile->sFilePath, sizeof(pFile->sFilePath), "%s/%s.log",
+            pCfg->sFilePath, pCfg->sFileName);
+    }
+
+    /* Check if the existing log file belongs to a different day and archive it */
+    memset(&statBuf, 0, sizeof(statBuf));
+    if (pCfg->nRotate && stat(pFile->sFilePath, &statBuf) == 0)
+    {
+        slog_date_t modDate;
+        slog_date_from_epoch(&modDate, (time_t)statBuf.st_mtime);
+
+        if (modDate.nDay != pDate->nDay ||
+            modDate.nMonth != pDate->nMonth ||
+            modDate.nYear != pDate->nYear)
+        {
+            pFile->nCurrYear = modDate.nYear;
+            pFile->nCurrMonth = modDate.nMonth;
+            pFile->nCurrDay = modDate.nDay;
+            slog_rotate_file(pFile, pCfg);
+        }
     }
 
 #ifdef _WIN32
-    if (fopen_s(&pFile->pHandle, pFile->sFilePath, "a")) pFile->pHandle = NULL;
+    /* Keep the file readable for other processes while the handle is open */
+    pFile->pHandle = _fsopen(pFile->sFilePath, "a", _SH_DENYNO);
 #else
     pFile->pHandle = fopen(pFile->sFilePath, "a");
 #endif
@@ -293,49 +410,12 @@ static uint8_t slog_open_file(slog_file_t *pFile, const slog_config_t *pCfg, con
         return 0;
     }
 
+    pFile->nCurrYear = pDate->nYear;
+    pFile->nCurrMonth = pDate->nMonth;
     pFile->nCurrDay = pDate->nDay;
+
     return 1;
 }
-
-#ifdef _WIN32
-void slog_get_date(slog_date_t *pDate)
-{
-    SYSTEMTIME st;
-    FILETIME ft;
-    ULARGE_INTEGER uli;
-
-    GetSystemTime(&st);
-    GetSystemTimeAsFileTime(&ft);
-
-    uli.LowPart = ft.dwLowDateTime;
-    uli.HighPart = ft.dwHighDateTime;
-
-    pDate->nYear = (uint16_t)st.wYear;
-    pDate->nMonth = (uint8_t)st.wMonth;
-    pDate->nDay = (uint8_t)st.wDay;
-    pDate->nHour = (uint8_t)st.wHour;
-    pDate->nMin = (uint8_t)st.wMinute;
-    pDate->nSec = (uint8_t)st.wSecond;
-    pDate->nUsec = (uint16_t)((uli.QuadPart / 10) % 1000);
-}
-#else
-void slog_get_date(slog_date_t *pDate)
-{
-    struct timeval tv;
-    struct tm tm_info;
-
-    gettimeofday(&tv, NULL);
-    localtime_r(&tv.tv_sec, &tm_info);
-
-    pDate->nYear = tm_info.tm_year + 1900;
-    pDate->nMonth = tm_info.tm_mon + 1;
-    pDate->nDay = tm_info.tm_mday;
-    pDate->nHour = tm_info.tm_hour;
-    pDate->nMin = tm_info.tm_min;
-    pDate->nSec = tm_info.tm_sec;
-    pDate->nUsec = (uint16_t)(tv.tv_usec / 1000);
-}
-#endif
 
 static size_t slog_get_tid()
 {
@@ -419,7 +499,16 @@ static void slog_display_message(const slog_context_t *pCtx, const char *pInfo, 
     if (!pCfg->nToFile || nCbVal < 0) return;
     const slog_date_t *pDate = &pCtx->date;
 
-    if (pFile->nCurrDay != pDate->nDay && pCfg->nRotate) slog_close_file(pFile);
+    if (pCfg->nRotate &&
+       (pFile->nCurrDay != pDate->nDay ||
+        pFile->nCurrMonth != pDate->nMonth ||
+        pFile->nCurrYear != pDate->nYear))
+    {
+        /* Zero day means we did not open the log file yet, nothing to archive */
+        if (!pFile->nCurrDay) slog_close_file(pFile);
+        else slog_rotate_file(pFile, pCfg);
+    }
+
     if (pFile->pHandle == NULL && !slog_open_file(pFile, pCfg, pDate)) return;
 
     fprintf(pFile->pHandle, "%s%s%s%s%s", pInfo,
@@ -472,7 +561,7 @@ static void slog_display_heap(const slog_context_t *pCtx, va_list args)
     nBytes = vasprintf(&pMessage, pCtx->pFormat, args);
 #endif
 
-    va_end(args);
+    /* Note: args is closed by the caller, closing it twice is undefined */
     (void)nBytes;
 
     if (pMessage == NULL)
@@ -527,30 +616,14 @@ void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char *pFormat, ...)
     slog_sync_unlock(&g_slog);
 }
 
+uint8_t slog_is_init(void)
+{
+    return g_nSlogInit ? 1 : 0;
+}
+
 const char* slog_version(uint8_t nShort)
 {
-    if (nShort)
-    {
-        if (!g_nHaveSlogVerShort)
-        {
-            snprintf(g_slogVerShort, sizeof(g_slogVerShort), "%d.%d.%d",
-                SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUMBER);
-
-            g_nHaveSlogVerShort = 1;
-        }
-
-        return g_slogVerShort;
-    }
-
-    if (!g_nHaveSlogVerLong)
-    {
-        snprintf(g_slogVerLong, sizeof(g_slogVerLong), "%d.%d build %d (%s)",
-        SLOG_VERSION_MAJOR, SLOG_VERSION_MINOR, SLOG_BUILD_NUMBER, __DATE__);
-
-        g_nHaveSlogVerLong = 1;
-    }
-
-    return g_slogVerLong;
+    return nShort ? g_slogVerShort : g_slogVerLong;
 }
 
 void slog_config_get(slog_config_t *pCfg)
@@ -634,18 +707,145 @@ size_t slog_get_full_path(char *pFilePath, size_t nSize)
 
     slog_file_t *pFile = &g_slog.logFile;
     int nLength = snprintf(pFilePath, nSize, "%s", pFile->sFilePath);
+
+    /* snprintf() returns the length it wanted to write, clamp it to the buffer */
     if (nLength < 0) nLength = 0;
+    else if ((size_t)nLength >= nSize) nLength = (int)nSize - 1;
     pFilePath[nLength] = SLOG_NUL;
 
     slog_sync_unlock(&g_slog);
     return (size_t)nLength;
 }
 
+size_t slog_path_set(const char *pPath)
+{
+    if (pPath == NULL) return 0;
+    slog_sync_lock(&g_slog);
+
+    slog_config_t *pCfg = &g_slog.config;
+    slog_file_t *pFile = &g_slog.logFile;
+
+    if (strncmp(pCfg->sFilePath, pPath, sizeof(pCfg->sFilePath)))
+    {
+        slog_close_file(pFile); /* Log function will open it again if required */
+        pFile->sFilePath[0] = SLOG_NUL;
+    }
+
+    int nLength = snprintf(pCfg->sFilePath, sizeof(pCfg->sFilePath), "%s", pPath);
+    if (nLength < 0) nLength = 0;
+    else if ((size_t)nLength >= sizeof(pCfg->sFilePath)) nLength = (int)sizeof(pCfg->sFilePath) - 1;
+
+    slog_sync_unlock(&g_slog);
+    return (size_t)nLength;
+}
+
+size_t slog_name_set(const char *pName)
+{
+    if (pName == NULL) return 0;
+    slog_sync_lock(&g_slog);
+
+    slog_config_t *pCfg = &g_slog.config;
+    slog_file_t *pFile = &g_slog.logFile;
+
+    if (strncmp(pCfg->sFileName, pName, sizeof(pCfg->sFileName)))
+    {
+        slog_close_file(pFile); /* Log function will open it again if required */
+        pFile->sFilePath[0] = SLOG_NUL;
+    }
+
+    int nLength = snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pName);
+    if (nLength < 0) nLength = 0;
+    else if ((size_t)nLength >= sizeof(pCfg->sFileName)) nLength = (int)sizeof(pCfg->sFileName) - 1;
+
+    slog_sync_unlock(&g_slog);
+    return (size_t)nLength;
+}
+
+void slog_color_format_set(slog_coloring_t eFmt)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.eColorFormat = eFmt;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_date_format_set(slog_date_ctrl_t eFmt)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.eDateControl = eFmt;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_screen_set(uint8_t nEnable)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.nToScreen = nEnable;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_file_set(uint8_t nEnable)
+{
+    slog_sync_lock(&g_slog);
+
+    if (!nEnable) slog_close_file(&g_slog.logFile);
+    g_slog.config.nToFile = nEnable;
+
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_flush_set(uint8_t nEnable)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.nFlush = nEnable;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_indent_set(uint8_t nEnable)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.nIndent = nEnable;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_trace_tid_set(uint8_t nEnable)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.nTraceTid = nEnable;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_use_heap_set(uint8_t nEnable)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.nUseHeap = nEnable;
+    slog_sync_unlock(&g_slog);
+}
+
+void slog_flags_set(uint16_t nFlags)
+{
+    slog_sync_lock(&g_slog);
+    g_slog.config.nFlags = nFlags;
+    slog_sync_unlock(&g_slog);
+}
+
+uint16_t slog_flags_get(void)
+{
+    slog_sync_lock(&g_slog);
+    uint16_t nFlags = g_slog.config.nFlags;
+    slog_sync_unlock(&g_slog);
+    return nFlags;
+}
+
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
 {
-    /* Initialize mutex */
-    g_slog.nTdSafe = nTdSafe;
-    slog_sync_init(&g_slog);
+    /* Re-initializing a live mutex is undefined behaviour, so recreate
+     * the lock only if this is the first init or the mode has changed */
+    if (!g_nSlogInit || g_slog.nTdSafe != nTdSafe)
+    {
+        if (g_nSlogInit) slog_sync_destroy(&g_slog);
+        g_slog.nTdSafe = nTdSafe;
+        slog_sync_init(&g_slog);
+    }
+
     slog_sync_lock(&g_slog);
 
     slog_config_t *pCfg = &g_slog.config;
@@ -673,8 +873,12 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     const char *pFileName = (pName != NULL) ? pName : SLOG_NAME_DEFAULT;
     snprintf(pCfg->sFileName, sizeof(pCfg->sFileName), "%s", pFileName);
 
+    /* Do not leak the handle if we are re-initialized */
+    slog_close_file(pFile);
+
     pFile->sFilePath[0] = SLOG_NUL;
-    pFile->pHandle = NULL;
+    pFile->nCurrYear = 0;
+    pFile->nCurrMonth = 0;
     pFile->nCurrDay = 0;
 
 #ifdef _WIN32
@@ -686,6 +890,7 @@ void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe)
     SetConsoleMode(hOutput, dwMode);
 #endif
 
+    g_nSlogInit = 1;
     slog_sync_unlock(&g_slog);
 }
 
@@ -697,6 +902,12 @@ void slog_destroy()
 
     g_slog.config.pCallbackCtx = NULL;
     g_slog.config.logCallback = NULL;
+
+    g_slog.logFile.sFilePath[0] = SLOG_NUL;
+    g_slog.logFile.nCurrYear = 0;
+    g_slog.logFile.nCurrMonth = 0;
+    g_slog.logFile.nCurrDay = 0;
+    g_nSlogInit = 0;
 
     slog_sync_unlock(&g_slog);
     slog_sync_destroy(&g_slog);

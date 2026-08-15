@@ -35,8 +35,9 @@ extern "C" {
 
 /* SLog version information */
 #define SLOG_VERSION_MAJOR      1
-#define SLOG_VERSION_MINOR      8
-#define SLOG_BUILD_NUMBER       48
+#define SLOG_VERSION_MINOR      9
+#define SLOG_BUILD_NUMBER       49
+#define SLOG_RELEASE_DATE       "16Aug2026"
 
 /* Supported colors */
 #define SLOG_COLOR_NORMAL       "\x1B[0m"
@@ -184,9 +185,27 @@ void slog_separator_set(const char *pFormat, ...);
 void slog_callback_set(slog_cb_t callback, void *pContext);
 size_t slog_get_full_path(char *pFilePath, size_t nSize);
 
+/* Thread safe setters for the individual configuration fields */
+size_t slog_path_set(const char *pPath);
+size_t slog_name_set(const char *pName);
+
+void slog_color_format_set(slog_coloring_t eFmt);
+void slog_date_format_set(slog_date_ctrl_t eFmt);
+
+void slog_screen_set(uint8_t nEnable);
+void slog_file_set(uint8_t nEnable);
+void slog_flush_set(uint8_t nEnable);
+void slog_indent_set(uint8_t nEnable);
+void slog_trace_tid_set(uint8_t nEnable);
+void slog_use_heap_set(uint8_t nEnable);
+
+void slog_flags_set(uint16_t nFlags);
+uint16_t slog_flags_get(void);
+
 void slog_enable(slog_flag_t eFlag);
 void slog_disable(slog_flag_t eFlag);
 
+uint8_t slog_is_init(void);
 void slog_init(const char* pName, uint16_t nFlags, uint8_t nTdSafe);
 void slog_display(slog_flag_t eFlag, uint8_t nNewLine, const char *pFormat, ...);
 void slog_destroy(); // Required only if (nTdSafe > 0 || nKeepOpen > 0)
